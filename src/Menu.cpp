@@ -155,7 +155,8 @@ void Menu::delOption(const MenuOptionKey key, const std::string& txt,
 
 	// Delete it
 	it = m_options.erase(it);
-	const auto rm_idx = it - m_options.cbegin();
+	const auto rm_idx = static_cast<decltype(m_options.size())>
+		(it - m_options.cbegin());
 
 	// The highlight cursor needs to be readjusted if it was on or after the 
 	// option that was removed
