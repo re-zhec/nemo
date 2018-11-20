@@ -1,0 +1,14 @@
+# Compiled source #
+###################
+*.o
+*.d
+*.exe
+*.dll
+
+# Log #
+#######
+*.log
+
+# Misc #
+########
+*.ttf
