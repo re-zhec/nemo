@@ -205,7 +205,7 @@ void Menu::setOptionText(const MenuOptionKey key, const std::string& txt,
 ////////////////////////////////////////////////////////////////////////////////
 
 void Menu::setOptionColor(const MenuOptionKey key, const std::string& txt, 
-   const sf::Color color, const uint32_t id)
+	const sf::Color color, const uint32_t id)
 {
 	// Search for the option
 	const auto it = findOption(key, id, txt);

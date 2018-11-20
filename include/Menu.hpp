@@ -137,7 +137,7 @@ public:
 	 * 					the same enumeration value. Optional
 	 */
 	void setOptionColor(const MenuOptionKey key, const std::string& txt, 
-      const sf::Color color, const uint32_t id = 0);
+		const sf::Color color, const uint32_t id = 0);
 	
 	/**
 	 * moveUp(), moveDown(), moveLeft(), and moveRight() move the highlight 
@@ -227,8 +227,8 @@ private:
 	// key. The second component is the graphical text. However, it's possible 
 	// to have multiple options with the same enumeration key but different text.
 	// The third component of the tuple is to indicate exactly which duplicate of 
-   // the same key. If the third argument in \property addOption isn't specified 
-   // when called, this value would be 0.
+	// the same key. If the third argument in \property addOption isn't specified 
+	// when called, this value would be 0.
 	std::vector<std::tuple<MenuOptionKey, sf::Text, uint32_t>> m_options;
 
 	/**
