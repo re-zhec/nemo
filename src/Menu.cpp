@@ -14,7 +14,7 @@ namespace {
 	/**
 	 * \brief For data that is represented as a 2D matrix but is actually 1-D and 
 	 * contiguous, this function converts the row and column coordinate to its 
-    * 1-D counterpart
+	 * 1-D counterpart
 	 * 
 	 * This function is used to get the index of a particular menu option, as 
 	 * they are stored in a single vector despite being displayed as a 2D matrix
@@ -35,7 +35,7 @@ namespace {
 	/**
 	 * \brief For data that is represented as a 2D matrix but is actually 1-D and 
 	 * contiguous, this function converts the row and column coordinate to its 
-    * 1-D counterpart
+	 * 1-D counterpart
 	 * 
 	 * This method is a wrapper for the method above, which takes the split row 
 	 * and column number as input instead of the pair
