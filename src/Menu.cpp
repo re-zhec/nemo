@@ -451,8 +451,9 @@ void Menu::move(const Direction dir)
 	// should take into account that the bottomost row may be partially filled.
 
 	// Get the row and column coordinate of the last option
-	const auto bottom = translateToRowColumn(m_options.size() - 1, m_cols);
-	const auto [bottom_r, bottom_c] = bottom;
+	const auto [bottom_r, bottom_c] = translateToRowColumn(
+		m_options.size() - 1, m_cols
+	);
 
 	// Rightmost column at the current row the cursor is on. Needed for moving 
 	// left and right
