@@ -40,16 +40,29 @@ public:
 	 * positions is negative and if the number of rows or columns is zero or 
 	 * negative.
 	 * 
-	 * \param x				starting position along x-axis relative to render window
-	 * \param y				starting position along y-axis relative to render window
-	 * \param width		width
-	 * \param height		height
-	 * \param rows			maximum rows of menu options that to be displayed 
-	 * \param cols			maximum columns of menu options that to be displayed
-	 * \param char_sz		character size
+	 * \param x				Starting position along x-axis relative to render window
+	 * \param y				Starting position along y-axis relative to render window
+	 * \param width		Overall width
+	 * \param height		Overall height
+	 * \param rows			Maximum rows of menu options that to be displayed 
+	 * \param cols			Maximum columns of menu options that to be displayed
+	 * \param char_sz			[Optional] Character size.
+	 * \param option_color	[Optional] Menu option text and box outline's color
+	 * \param backgd_color	[Optional] Menu background color
+	 * \param cursor_color	[Optional] Selection cursor and page number's color
 	 */
-	Menu(const float x, const float y, const float width, const float height, 
-		const size_t rows, const size_t cols, const size_t char_sz = 30);
+	Menu(
+		const float x, 
+		const float y, 
+		const float width, 
+		const float height, 
+		const size_t rows, 
+		const size_t cols, 
+		const size_t char_sz = 30, 
+		const sf::Color option_color = sf::Color::Green,
+		const sf::Color backgd_color = {25, 25, 25},
+		const sf::Color cursor_color = sf::Color::White
+	);
 
 	/**
 	 * \brief Add an option to the menu
@@ -79,8 +92,8 @@ public:
 	 * 
 	 * \param key		Menu option's enumeration identifier
 	 * \param txt		Text to display
-	 * \param id		Relative ID if the menu already has multiple options with 
-	 * 					the same enumeration value. Optional
+	 * \param id		[Optional] Relative ID if the menu already has multiple 
+	 * 					options with the same enumeration identifier
 	 */
 	void addOption(const MenuOptionKey key, const std::string& txt, 
 		const uint32_t id = 0);
@@ -95,8 +108,8 @@ public:
 	 * 
 	 * \param key		Menu option's enumeration identifier
 	 * \param txt		Displayed text
-	 * \param id		Relative ID if the menu already has multiple options with 
-	 * 					the same enumeration value. Optional
+	 * \param id		[Optional] Relative ID if the menu already has multiple 
+	 * 					options with the same enumeration identifier
 	 */
 	void delOption(const MenuOptionKey key, const std::string& txt, 
 		const uint32_t id = 0);
@@ -122,8 +135,8 @@ public:
 	 * 
 	 * \param key		Menu option's enumeration identifier
 	 * \param txt		New text to display
-	 * \param id		Relative ID if the menu already has multiple options with 
-	 * 					the same enumeration value. Optional
+	 * \param id		[Optional] Relative ID if the menu already has multiple 
+	 * 					options with the same enumeration identifier
 	 */
 	void setOptionText(const MenuOptionKey key, const std::string& txt, 
 		const uint32_t id = 0);
@@ -141,8 +154,8 @@ public:
 	 * \param key		Menu option's enumeration identifier
 	 * \param txt		Displayed text
 	 * \param color	New color
-	 * \param id		Relative ID if the menu already has multiple options with 
-	 * 					the same enumeration value. Optional
+	 * \param id		[Optional] Relative ID if the menu already has multiple 
+	 * 					options with the same enumeration identifier
 	 */
 	void setOptionColor(const MenuOptionKey key, const std::string& txt, 
 		const sf::Color color, const uint32_t id = 0);
@@ -225,13 +238,17 @@ private:
 	size_t m_char_sz;	///< Character size
 
 	float m_option_width;		///< Width of each menu option
-	float m_option_height;		///< Height of each menu option	
-	sf::Font m_font;				///< Font used
-	sf::RectangleShape m_box;	///< Rectangle that forms the menu's background
+	float m_option_height;		///< Height of each menu option
 
-	///< Row and column coordinate indicating which menu option is currently 
-	// being highlighted for selection
-	std::pair<size_t, size_t> m_sel_rc; 
+	///< Color for the menu option text and the menu box outline
+	sf::Color m_option_color;
+
+	///< Row and column coordinate of the menu's selection cursor
+	std::pair<size_t, size_t> m_sel_rc;
+
+	///< Color of the menu option the selection cursor is on as well as the 
+	// current menu page number
+	sf::Color m_cursor_color;
 
 	///< Menu options. The first tuple component is an option's enumeration 
 	// key. The second component is the graphical text. However, it's possible 
@@ -240,6 +257,10 @@ private:
 	// the same key. If the third argument in \property addOption isn't specified 
 	// when called, this value would be 0.
 	std::vector<std::tuple<MenuOptionKey, sf::Text, uint32_t>> m_options;
+
+	sf::Color m_backgd_color;		///< Menu background color
+	sf::RectangleShape m_backgd;	///< Rectangle that forms the menu's background
+	sf::Font m_font;					///< Font used
 
 	/**
 	 * \brief Set where a menu option should be drawn on the render window
@@ -310,10 +331,10 @@ private:
 	 * 
 	 * This method checks if \a txt is empty or not. 
 	 * 
-	 * \param key		Enumeration value
+	 * \param key		Enumeration key
 	 * \param id		Relative ID if the menu already has multiple options with 
 	 * 					the same enumeration value.
-	 * \param txt		Text. Optional.
+	 * \param txt		[Optional] Text
 	 * 
 	 * \return Non-const iterator to the first menu option that matches the 
 	 * arguments. If there is no match, \var m_options.end() is returned. 

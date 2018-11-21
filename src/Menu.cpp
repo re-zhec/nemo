@@ -75,8 +75,18 @@ namespace {
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-Menu::Menu(const float x, const float y, const float width, const float height, 
-	const size_t rows, const size_t cols, const size_t char_sz)
+Menu::Menu(
+	const float x, 
+	const float y, 
+	const float width, 
+	const float height, 
+	const size_t rows, 
+	const size_t cols, 
+	const size_t char_sz, 
+	const sf::Color option_color, 
+	const sf::Color backgd_color,
+	const sf::Color cursor_color
+)	
 	: m_x(x)
 	, m_y(y)
 	, m_width(width)
@@ -92,8 +102,12 @@ Menu::Menu(const float x, const float y, const float width, const float height,
 	, m_option_height((m_height - static_cast<decltype(m_height)>(m_char_sz)) / 
 			static_cast<decltype(m_height)>(m_rows))
 	
+	, m_option_color(option_color)
+	, m_cursor_color(cursor_color)
+	, m_backgd_color(backgd_color)
+
 	// Create rectangular box for the menu's background
-	, m_box(sf::Vector2f(width, height))
+	, m_backgd(sf::Vector2f(width, height))
 {
 	assert(m_x >= 0.f);
 	assert(m_y >= 0.f);
@@ -110,10 +124,10 @@ Menu::Menu(const float x, const float y, const float width, const float height,
 	const auto success = m_font.loadFromFile("font/EBGaramond-Regular.ttf");
 	assert(success);
 
-	m_box.setPosition(m_x, m_y);
-	m_box.setFillColor(sf::Color(25, 25, 25));
-	m_box.setOutlineColor(sf::Color(255, 255, 255));
-	m_box.setOutlineThickness(-2.f);
+	m_backgd.setPosition(m_x, m_y);
+	m_backgd.setFillColor(sf::Color(25, 25, 25));
+	m_backgd.setOutlineColor(m_option_color);
+	m_backgd.setOutlineThickness(-2.f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,11 +142,11 @@ void Menu::addOption(const MenuOptionKey key, const std::string& txt,
 
 	if (m_options.empty()) {
 		// Selection cursor is on the first option by default
-		option.setFillColor(sf::Color::Red);
+		option.setFillColor(m_cursor_color);
 		m_sel_rc = {0, 0};
 	}
 	else {
-		option.setFillColor(sf::Color::White);
+		option.setFillColor(m_option_color);
 	}
 
 	// Add the option to the menu
@@ -193,7 +207,7 @@ void Menu::delOption(const MenuOptionKey key, const std::string& txt,
 			// Otherwise, the cursor would just be pointing at the option following 
 			// the removed one. Either way, The option still has the nonselected 
 			// color, so change that
-			setOptionColor(cur_idx, sf::Color::Red);
+			setOptionColor(cur_idx, m_cursor_color);
 		}
 
 		// All options that followed the removed one need to have their render 
@@ -323,8 +337,8 @@ void Menu::moveLeft()
 
 void Menu::draw(sf::RenderWindow& window) const
 {
-	// Draw background box
-	window.draw(m_box);
+	// Draw background
+	window.draw(m_backgd);
 
 	// Drawing the menu options...
 
@@ -341,7 +355,8 @@ void Menu::draw(sf::RenderWindow& window) const
 	// necessarily have all the rows and columns filled, so cap at the last 
 	// option index
 	const auto start = cur_page * page_sz;
-	const auto end = std::min(start + page_sz, m_options.size());
+	const auto n = m_options.size();
+	const auto end = std::min(start + page_sz, n);
 
 	// Draw the options' text
 	for (auto i = start; i < end; ++i) {
@@ -350,8 +365,8 @@ void Menu::draw(sf::RenderWindow& window) const
 	}
 
 	// Draw the current page number out of the total so that the player knows
-	// where they are. Add one since to current page index since it is 0-based
-	const auto npages = m_options.size() / page_sz + 1;
+	// where they are.
+	const auto npages = n / page_sz + (n % page_sz != 0 ? 1 : 0);
 	const auto page_txt = std::to_string(cur_page + 1) + "/" + 
 		std::to_string(npages);
 	
@@ -421,7 +436,7 @@ void Menu::move(const Direction dir)
 	// Change the current menu option to the non-selected color before moving to
 	// the next option
 	auto& [r, c] = m_sel_rc;
-	setOptionColor(r, c, sf::Color::White);
+	setOptionColor(r, c, m_option_color);
 
 	// For changing the current row or column...
 
@@ -469,7 +484,7 @@ void Menu::move(const Direction dir)
 	}
 
 	// Highlight the menu option the cursor just moved to
-	setOptionColor(r, c, sf::Color::Red);	
+	setOptionColor(r, c, m_cursor_color);	
 	LOG_DEBUG("New cursor location: (" << r << "," << c << ")");
 }
 

@@ -9,20 +9,21 @@ StartScreen::StartScreen()
 	: m_menu(40.f, 40.f, 600.f, 250.f, 2, 4, 25)
 	, m_file(0)
 {
-	// m_menu.addOption(MenuOptionKey::Play, "Play");
-	// m_menu.addOption(MenuOptionKey::Options, "Options");
-	// m_menu.addOption(MenuOptionKey::Exit, "Exit");
-	// m_menu.addOption(MenuOptionKey::Play, "Test1");
-	// m_menu.addOption(MenuOptionKey::Play, "Test2");
-	// m_menu.addOption(MenuOptionKey::Play, "Test3");
-	// m_menu.addOption(MenuOptionKey::Play, "Test4");
-	// m_menu.addOption(MenuOptionKey::Play, "Test5");
-	// m_menu.addOption(MenuOptionKey::Play, "Test6");
-	// m_menu.addOption(MenuOptionKey::Play, "Test7");
-	// m_menu.addOption(MenuOptionKey::Play, "Test8");
-	// m_menu.addOption(MenuOptionKey::Play, "Test9");
-	// m_menu.addOption(MenuOptionKey::Play, "Test10");
-	// m_menu.addOption(MenuOptionKey::Play, "Test11");
+	m_menu.addOption(MenuOptionKey::Play, "Play");
+	m_menu.addOption(MenuOptionKey::Options, "Options");
+	m_menu.addOption(MenuOptionKey::Exit, "Exit");
+	m_menu.addOption(MenuOptionKey::Play, "Test1");
+	m_menu.addOption(MenuOptionKey::Play, "Test2");
+	m_menu.addOption(MenuOptionKey::Play, "Test3");
+	m_menu.addOption(MenuOptionKey::Play, "Test4");
+	m_menu.addOption(MenuOptionKey::Play, "Test5");
+	m_menu.addOption(MenuOptionKey::Play, "Test6");
+	m_menu.addOption(MenuOptionKey::Play, "Test7");
+	m_menu.addOption(MenuOptionKey::Play, "Test8");
+	m_menu.addOption(MenuOptionKey::Play, "Test9");
+	m_menu.addOption(MenuOptionKey::Play, "Test10");
+	m_menu.addOption(MenuOptionKey::Play, "Test11");
+	m_menu.addOption(MenuOptionKey::Play, "Test12");
 	m_menu.addOption(MenuOptionKey::Options, "Options");
 	m_menu.addOption(MenuOptionKey::Options, "Options");
 }
