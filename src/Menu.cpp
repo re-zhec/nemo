@@ -76,10 +76,9 @@ namespace {
 ////////////////////////////////////////////////////////////////////////////////
 
 Menu::Menu(
-	const float x, 
-	const float y, 
-	const float width, 
-	const float height, 
+	const std::pair<float, float> xy,
+	const float width,
+	const float height,
 	const size_t rows, 
 	const size_t cols, 
 	const size_t char_sz, 
@@ -87,8 +86,8 @@ Menu::Menu(
 	const sf::Color backgd_color,
 	const sf::Color cursor_color
 )	
-	: m_x(x)
-	, m_y(y)
+	: m_x(xy.first)
+	, m_y(xy.second)
 	, m_width(width)
 	, m_height(height)
 	, m_rows(rows)
@@ -107,7 +106,7 @@ Menu::Menu(
 	, m_backgd_color(backgd_color)
 
 	// Create rectangular box for the menu's background
-	, m_backgd(sf::Vector2f(width, height))
+	, m_backgd(sf::Vector2f(m_width, m_height))
 {
 	assert(m_x >= 0.f);
 	assert(m_y >= 0.f);
@@ -121,13 +120,16 @@ Menu::Menu(
 	m_options.reserve(m_rows * m_cols);
 
 	// Load font from file
-	const auto success = m_font.loadFromFile("font/EBGaramond-Regular.ttf");
+	const auto success = m_font.loadFromFile(
+		"font/Montserrat/Montserrat-Regular.ttf"
+	);
+
 	assert(success);
 
 	m_backgd.setPosition(m_x, m_y);
 	m_backgd.setFillColor(m_backgd_color);
-	m_backgd.setOutlineColor(m_option_color);
-	m_backgd.setOutlineThickness(-2.f);
+	m_backgd.setOutlineColor(m_cursor_color);
+	m_backgd.setOutlineThickness(-1.f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -451,25 +453,25 @@ void Menu::move(const Direction dir)
 	// should take into account that the bottomost row may be partially filled.
 
 	// Get the row and column coordinate of the last option
-	const auto [bottom_r, bottom_c] = translateToRowColumn(
+	const auto [last_r, last_c] = translateToRowColumn(
 		m_options.size() - 1, m_cols
 	);
 
 	// Rightmost column at the current row the cursor is on. Needed for moving 
 	// left and right
-	const auto right_c = r < bottom_r ? m_cols - 1 : bottom_c;
+	const auto right_c = r < last_r ? m_cols - 1 : last_c;
 
 	switch (dir) {
 		// Up/down changes the row index.
 		// If the cursor will move to the bottom row but there's no option exactly 
 		// below it, move it to the last option
 		case Direction::Up:
-			r = r > 0 ? r - 1 : bottom_r;
-			c = r < bottom_r ? c : std::min(c, bottom_c);
+			r = r > 0 ? r - 1 : last_r;
+			c = r < last_r ? c : std::min(c, last_c);
 			break;
 		case Direction::Down:
-			r = r < bottom_r ? r + 1 : 0;
-			c = r < bottom_r ? c : std::min(c, bottom_c);
+			r = r < last_r ? r + 1 : 0;
+			c = r < last_r ? c : std::min(c, last_c);
 			break;
 		// Left/right changes the column index
 		case Direction::Right:

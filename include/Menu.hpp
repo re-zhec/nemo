@@ -40,10 +40,9 @@ public:
 	 * positions is negative and if the number of rows or columns is zero or 
 	 * negative.
 	 * 
-	 * \param x				Starting position along x-axis relative to render window
-	 * \param y				Starting position along y-axis relative to render window
-	 * \param width		Overall width
-	 * \param height		Overall height
+	 * \param xy			Top left xy coordinate for the menu in render window
+	 * \param dim			Overall width
+	 * \param height		Overall height	
 	 * \param rows			Maximum rows of menu options that to be displayed 
 	 * \param cols			Maximum columns of menu options that to be displayed
 	 * \param char_sz			[Optional] Character size.
@@ -52,16 +51,15 @@ public:
 	 * \param cursor_color	[Optional] Selection cursor and page number's color
 	 */
 	Menu(
-		const float x, 
-		const float y, 
-		const float width, 
-		const float height, 
+		const std::pair<float, float> xy,
+		const float width,
+		const float height,
 		const size_t rows, 
 		const size_t cols, 
-		const size_t char_sz = 30, 
-		const sf::Color option_color = sf::Color::Green,
+		const size_t char_sz = 22, 
+		const sf::Color option_color = {5, 255, 5},
 		const sf::Color backgd_color = {25, 25, 25},
-		const sf::Color cursor_color = sf::Color::White
+		const sf::Color cursor_color = {240, 240, 240}
 	);
 
 	/**

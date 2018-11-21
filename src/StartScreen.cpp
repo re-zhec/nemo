@@ -6,26 +6,28 @@ namespace fe
 {
 
 StartScreen::StartScreen()
-	: m_menu(40.f, 40.f, 600.f, 250.f, 2, 4, 25)
+	: m_main_menu({40.f, 40.f}, 600.f, 250.f, 2, 4)
+	, m_file_menu({40.f, 40.f}, 200.f, 600.f, 1, 4)
+	, m_cfg_menu({0.f, 0.f}, 1280.f, 720.f, 4, 8)
 	, m_file(0)
 {
-	m_menu.addOption(MenuOptionKey::Play, "Play");
-	m_menu.addOption(MenuOptionKey::Options, "Options");
-	m_menu.addOption(MenuOptionKey::Exit, "Exit");
-	m_menu.addOption(MenuOptionKey::Play, "Test1");
-	m_menu.addOption(MenuOptionKey::Play, "Test2");
-	m_menu.addOption(MenuOptionKey::Play, "Test3");
-	m_menu.addOption(MenuOptionKey::Play, "Test4");
-	m_menu.addOption(MenuOptionKey::Play, "Test5");
-	m_menu.addOption(MenuOptionKey::Play, "Test6");
-	m_menu.addOption(MenuOptionKey::Play, "Test7");
-	m_menu.addOption(MenuOptionKey::Play, "Test8");
-	m_menu.addOption(MenuOptionKey::Play, "Test9");
-	m_menu.addOption(MenuOptionKey::Play, "Test10");
-	m_menu.addOption(MenuOptionKey::Play, "Test11");
-	m_menu.addOption(MenuOptionKey::Play, "Test12");
-	m_menu.addOption(MenuOptionKey::Options, "Options");
-	m_menu.addOption(MenuOptionKey::Options, "Options");
+	m_main_menu.addOption(MenuOptionKey::Play, "Play");
+	m_main_menu.addOption(MenuOptionKey::Options, "Options");
+	m_main_menu.addOption(MenuOptionKey::Exit, "Exit");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test1");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test2");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test3");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test4");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test5");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test6");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test7");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test8");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test9");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test10");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test11");
+	m_main_menu.addOption(MenuOptionKey::Play, "Test12");
+	m_main_menu.addOption(MenuOptionKey::Options, "Options");
+	m_main_menu.addOption(MenuOptionKey::Options, "Options");
 }
 
 void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)
@@ -42,39 +44,39 @@ void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)
 
 				case sf::Keyboard::W:
 					LOG_DEBUG("'w' key pressed");
-					m_menu.moveUp();
+					m_main_menu.moveUp();
 					break;
 				
 				case sf::Keyboard::S:
 					LOG_DEBUG("'s' key pressed");
-					m_menu.moveDown();
+					m_main_menu.moveDown();
 					break;
 				
 				case sf::Keyboard::A:
 					LOG_DEBUG("'a' key pressed");
-					m_menu.moveLeft();
+					m_main_menu.moveLeft();
 					break;
 				
 				case sf::Keyboard::D:
 					LOG_DEBUG("'d' key pressed");
-					m_menu.moveRight();
+					m_main_menu.moveRight();
 					break;
 				
 				case sf::Keyboard::Enter:
 					LOG_DEBUG("enter key pressed");
 					
-					if (const auto selected = m_menu.getHoveredOption()) {
+					if (const auto selected = m_main_menu.getHoveredOption()) {
 						switch (const auto [key, id] = *selected;
 							key)
 						{
 							case MenuOptionKey::Play:
-								m_menu.setOptionText(
+								m_main_menu.setOptionText(
 									MenuOptionKey::Play,
 									"Poop"
 								);
 								break;
 							case MenuOptionKey::Options:
-								m_menu.delOption(
+								m_main_menu.delOption(
 									MenuOptionKey::Options,
 									"Options"
 								);
@@ -98,7 +100,7 @@ void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)
 			break;
 	}
 
-	m_menu.draw(window);
+	m_main_menu.draw(window);
 }
 
 bool StartScreen::IsFileLoaded() const

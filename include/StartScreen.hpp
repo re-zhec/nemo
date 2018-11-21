@@ -13,7 +13,10 @@ public:
 	bool IsFileLoaded() const;
 
 private:
-	Menu m_menu;
+	Menu m_main_menu;
+	Menu m_file_menu;
+	Menu m_cfg_menu;
+
 	int m_file;
 };
 
