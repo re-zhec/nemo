@@ -450,11 +450,9 @@ void Menu::move(const Direction dir)
 	// to the bottomost option at the same column, and vice versa. The wrapping 
 	// should take into account that the bottomost row may be partially filled.
 
-	// Get the bottomost row that the options make up its last column. This is 
-	// needed for moving up and down
-	const auto last = m_options.size() - 1;
-	const auto bottom_r = last / m_cols;
-	const auto bottom_c = last % m_cols;
+	// Get the row and column coordinate of the last option
+	const auto bottom = translateToRowColumn(m_options.size() - 1, m_cols);
+	const auto [bottom_r, bottom_c] = bottom;
 
 	// Rightmost column at the current row the cursor is on. Needed for moving 
 	// left and right
