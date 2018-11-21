@@ -106,7 +106,7 @@ public:
 	 *
 	 * \return True if yes; false otherwise
 	 */
-	bool empty() const;
+	bool empty() const noexcept;
 
 	/**
 	 * \brief Change an option's text
@@ -195,7 +195,7 @@ public:
 	 * key. Or nothing if the menu is empty
 	 */
 	std::optional<std::pair<MenuOptionKey, uint32_t>> 
-	getHoveredOption() const;
+	getHoveredOption() const noexcept;
 
 private:
 	/**

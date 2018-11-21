@@ -27,6 +27,7 @@ namespace {
 	 */
 	inline decltype(auto) 
 	translateTo1DIndex(const size_t r, const size_t c, const size_t ncols)
+	noexcept
 	{
 		// Indices are numbered from left to right, going downward
 		return r * ncols + c;
@@ -47,6 +48,7 @@ namespace {
 	 */
 	inline decltype(auto) 
 	translateTo1DIndex(const std::pair<size_t, size_t> rc, const size_t ncols)
+	noexcept
 	{
 		const auto [r, c] = rc;
 		return translateTo1DIndex(r, c, ncols);
@@ -62,7 +64,8 @@ namespace {
 	 * \return Row and column coordinate
 	 */
 	inline decltype(auto)
-	translateToRowColumn(const size_t idx, const size_t ncols)
+	translateToRowColumn(const size_t idx, const size_t ncols) 
+	noexcept
 	{
 		return std::make_pair(idx / ncols, idx % ncols);
 	}
@@ -146,7 +149,7 @@ void Menu::addOption(const MenuOptionKey key, const std::string& txt,
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-bool Menu::empty() const
+bool Menu::empty() const noexcept
 {
 	return m_options.empty();
 }
@@ -237,7 +240,7 @@ void Menu::setOptionColor(const MenuOptionKey key, const std::string& txt,
 ////////////////////////////////////////////////////////////////////////////////
 
 std::optional<std::pair<MenuOptionKey, uint32_t>> 
-Menu::getHoveredOption() const
+Menu::getHoveredOption() const noexcept
 {
 	if (m_options.empty()) {
 		return {};
