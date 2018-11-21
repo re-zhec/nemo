@@ -354,11 +354,12 @@ void Menu::draw(sf::RenderWindow& window) const
 	const auto npages = m_options.size() / page_sz + 1;
 	const auto page_txt = std::to_string(cur_page + 1) + "/" + 
 		std::to_string(npages);
-		
-	// Place them at the bottom right of the displayable portion of the menu
-	const auto char_sz = static_cast<float>(m_char_sz);
-	const auto page_txt_sz = static_cast<float>(page_txt.length()) * char_sz;
 	
+	const auto char_sz = static_cast<decltype(m_x)>(m_char_sz);
+	const auto page_txt_sz = static_cast<decltype(m_x)>(page_txt.length()) 
+		* char_sz;
+	
+	// Place them at the bottom right of the displayable portion of the menu
 	const auto botright_x = m_x + m_width - page_txt_sz;
 	const auto botright_y = m_y + m_height - char_sz;
 
@@ -367,8 +368,8 @@ void Menu::draw(sf::RenderWindow& window) const
 	page_mark.setPosition(botright_x, botright_y);
 	window.draw(page_mark);
 
-	// Draw scroll arrows
 	if (npages > 1) {
+		// Draw scroll arrows
 		const auto radius = char_sz / 2.5f;
 
 		// Up arrow
