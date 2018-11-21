@@ -125,7 +125,7 @@ Menu::Menu(
 	assert(success);
 
 	m_backgd.setPosition(m_x, m_y);
-	m_backgd.setFillColor(sf::Color(25, 25, 25));
+	m_backgd.setFillColor(m_backgd_color);
 	m_backgd.setOutlineColor(m_option_color);
 	m_backgd.setOutlineThickness(-2.f);
 }
@@ -369,7 +369,7 @@ void Menu::draw(sf::RenderWindow& window) const
 
 	// Draw the current page number out of the total so that the player knows
 	// where they are.
-	const auto npages = n / page_sz + (n % page_sz != 0 ? 1 : 0);
+	const auto npages = (n - 1) / page_sz + 1;
 	const auto page_txt = std::to_string(cur_page + 1) + "/" + 
 		std::to_string(npages);
 	
@@ -441,46 +441,43 @@ void Menu::move(const Direction dir)
 	auto& [r, c] = m_sel_rc;
 	setOptionColor(r, c, m_option_color);
 
-	// For changing the current row or column...
+	// Changing the current row or column...
 
 	// The highlight cursor should be able to wrap around the ends of the menu.
 	// Moving left when the cursor is at the leftmost option should take the 
 	// cursor to the rightmost option at the same row, and vice versa. Similarly,
 	// moving up when the cursor is at the topmost option should take the cursor 
 	// to the bottomost option at the same column, and vice versa. The wrapping 
-	// should take into account that the bottomost row could be partially filled.
+	// should take into account that the bottomost row may be partially filled.
 
-	// Get the current number of rows that the options make up
-	const auto n = m_options.size();
-	const auto rows_touched = (n - 1) / m_cols + 1;
+	// Get the bottomost row that the options make up its last column. This is 
+	// needed for moving up and down
+	const auto last = m_options.size() - 1;
+	const auto bottom_r = last / m_cols;
+	const auto bottom_c = last % m_cols;
 
-	// Number of columns that are filled in the last row
-	const auto cols_filled = n % m_cols != 0 ? n % m_cols : m_cols;
-
-	// Determine the bottommost row and rightmost column numbers from the
-	// cursor's current location
-	const auto bottom = c >= cols_filled && rows_touched > 1 
-		? rows_touched - 2 
-		: rows_touched - 1;
-
-	const auto right = r < rows_touched - 1
-		? m_cols - 1
-		: cols_filled - 1;
+	// Rightmost column at the current row the cursor is on. Needed for moving 
+	// left and right
+	const auto right_c = r < bottom_r ? m_cols - 1 : bottom_c;
 
 	switch (dir) {
-		// Up/down changes the row index
+		// Up/down changes the row index.
+		// If the cursor will move to the bottom row but there's no option exactly 
+		// below it, move it to the last option
 		case Direction::Up:
-			r = r > 0 ? r - 1 : bottom;
+			r = r > 0 ? r - 1 : bottom_r;
+			c = r < bottom_r ? c : std::min(c, bottom_c);
 			break;
 		case Direction::Down:
-			r = r < bottom ? r + 1 : 0;
+			r = r < bottom_r ? r + 1 : 0;
+			c = r < bottom_r ? c : std::min(c, bottom_c);
 			break;
 		// Left/right changes the column index
 		case Direction::Right:
-			c = c < right ? c + 1 : 0;
+			c = c < right_c ? c + 1 : 0;
 			break;
 		case Direction::Left:
-			c = c > 0 ? c - 1 : right;
+			c = c > 0 ? c - 1 : right_c;
 			break;
 		default:
 			break;
