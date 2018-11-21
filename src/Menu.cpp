@@ -108,9 +108,9 @@ Menu::Menu(const float x, const float y, const float width, const float height,
 	assert(success);
 
 	m_box.setPosition(m_x, m_y);
-	m_box.setFillColor(sf::Color(20, 20, 20));
+	m_box.setFillColor(sf::Color(25, 25, 25));
 	m_box.setOutlineColor(sf::Color(255, 255, 255));
-	m_box.setOutlineThickness(2.f);
+	m_box.setOutlineThickness(-2.f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,21 +160,24 @@ void Menu::delOption(const MenuOptionKey key, const std::string& txt,
 
 	// The highlight cursor needs to be readjusted if it was on or after the 
 	// option that was removed
-	if (const auto cur_idx = translateTo1DIndex(m_sel_rc, m_cols);
+	if (auto cur_idx = translateTo1DIndex(m_sel_rc, m_cols);
 		cur_idx >= rm_idx)
 	{
-		// Move the cursor if it was on the last option when that was removed. 
-		// There is nothing left at its current coordinate
+		// Move the cursor back if it was on the last option when that was 
+		// removed. There is nothing left at its current coordinate
 		if (cur_idx == m_options.size()) {
-			// moveLeft() already accounts for moving left in a vertical menu
-			moveLeft();
+			// Since there's nothing there, none of the other menu movement methods
+			// can be called because they change the color of the option the cursor 
+			// was on. The cursor's coordinates need to be manually changed to the 
+			// preceding menu option's
+			--cur_idx;
+			m_sel_rc = translateToRowColumn(cur_idx, m_cols);
 		}
-		else {
-			// Otherwise, the cursor would just be pointing at the option following 
-			// the removed one. That option still has the nonselected color, so 
-			// change its color
-			setOptionColor(cur_idx, sf::Color::Red);
-		}
+
+		// Otherwise, the cursor would just be pointing at the option following 
+		// the removed one. Either way, The option still has the nonselected 
+		// color, so change that
+		setOptionColor(cur_idx, sf::Color::Red);
 	}
 
 	// All options that followed the removed one need to have their render 
@@ -301,20 +304,22 @@ void Menu::draw(sf::RenderWindow& window) const
 	// Draw background box
 	window.draw(m_box);
 
-	// The entire list of menu options aren't going to be drawned into the render
-	// window, only the "frame" that has the currently highlighted menu option. 
-	// A frame is the maximum number of menu options that can be displayed at 
-	// once based on the maximum rows and columns in the menu's construction
-	const auto frame_sz = m_rows * m_cols;
+	// Drawing the menu options...
+
+	// The entire list isn't going to be drawned into the render window. Only the 
+	// "page" that has the menu option the highlight cursor is on needs to be. A
+	// page is the number of menu options that can be displayed at once based on
+	// the specified number of rows and columns in the menu's construction
+	const auto page_sz = m_rows * m_cols;
 	const auto idx = translateTo1DIndex(m_sel_rc, m_cols);
+	const auto cur_page = idx / page_sz;
 
-	// Getting the index of the first option of the frame the option highlighted 
-	// by the cursor is in.
-	const auto start = idx / frame_sz * frame_sz;
-
-	// The last frame doesn't necessarily have all the rows and columns filled, 
-	// so cap at the last option if the highlighted menu option is in there
-	const auto end = std::min(start + frame_sz, m_options.size());
+	// Find the first and last menu option that would appear in the highlighed 
+	// option's frame. In the case of this frame being the last one, it doesn't 
+	// necessarily have all the rows and columns filled, so cap at the last 
+	// option index
+	const auto start = cur_page * page_sz;
+	const auto end = std::min(start + page_sz, m_options.size());
 
 	// Draw the options' text
 	for (auto i = start; i < end; ++i) {
@@ -322,29 +327,38 @@ void Menu::draw(sf::RenderWindow& window) const
 		window.draw(txt);
 	}
 
-	// Also write which frame number out the total number the cursor is in the 
-	// menu so that the player knows where they are
-	const auto cur_frame = idx / frame_sz + 1;
-	const auto nframes = m_options.size() / frame_sz + 1;
-	const auto frame_txt = std::to_string(cur_frame) + "/" + 
-		std::to_string(nframes);
+	// Draw the current page number out of the total so that the player knows
+	// where they are. Add one since to current page index since it is 0-based
+	const auto npages = m_options.size() / page_sz + 1;
+	const auto page_txt = std::to_string(cur_page + 1) + "/" + 
+		std::to_string(npages);
+		
+	// Place them at the bottom right of the displayable portion of the menu
+	const auto char_sz = static_cast<float>(m_char_sz);
+	const auto page_txt_sz = static_cast<float>(page_txt.length()) * char_sz;
 	
-	sf::Text frame_gtxt(frame_txt, m_font, m_char_sz);
-	frame_gtxt.setOrigin(
-		m_width / m_height * static_cast<float>(m_char_sz), 
-		2.f * static_cast<float>(m_char_sz)
-	);
-	frame_gtxt.setPosition(m_x + m_width, m_y + m_height);
+	const auto botright_x = m_x + m_width - page_txt_sz;
+	const auto botright_y = m_y + m_height - char_sz;
 
-	window.draw(frame_gtxt);
+	sf::Text page_mark(page_txt, m_font, m_char_sz);
+	page_mark.setOrigin(0, char_sz / 2.f);
+	page_mark.setPosition(botright_x, botright_y);
+	window.draw(page_mark);
 
-	// Draw scroller arrows if there is more than one frame
-	if (nframes > 1) {
-		if (cur_frame < nframes) {
-			sf::CircleShape triangle(m_char_sz, 3);
-			frame_gtxt.setPosition(m_x + m_width - m_char_sz, m_y + m_height);
+	// Draw scroll arrows
+	if (npages > 1) {
+		const auto radius = char_sz / 2.5f;
 
-		}
+		// Up arrow
+		sf::CircleShape arrow(radius, 3);
+		arrow.setOrigin(radius / 2.f, radius / 2.f);
+		arrow.setPosition(botright_x - 3.25f * char_sz, botright_y);
+		window.draw(arrow);
+		
+		// Flip and redraw for down arrow
+		arrow.scale(1.f, -1.f);
+		arrow.setPosition(botright_x - 2.f * char_sz, botright_y + radius / 2.f);
+		window.draw(arrow);
 	}
 }
 
@@ -356,16 +370,17 @@ void Menu::presetOptionPosition(size_t idx)
 {
 	assert(idx < m_options.size());
 	[[maybe_unused]] auto& [UNUSED0_, txt, UNUSED2_] = m_options[idx];
-
-	// Adjust relative spacing	
-	txt.setOrigin(-m_option_width / 4.f, -m_option_height / 4.f);
+	LOG_DEBUG(m_option_width << "," << m_option_height);
 
 	// Menu options are positioned from left to right down across rows. For every
 	// "frame" of options (maximum number of rows x columns displayable options), 
-	// start over from the top
+	// start over from the top. Add 1/4 of each option's dimensions to their 
+	// positions to center them somewhat
 	txt.setPosition(
-		m_x + static_cast<decltype(m_x)>(idx % m_cols) * m_option_width,
-		m_y + static_cast<decltype(m_y)>(idx / m_cols % m_rows) * m_option_height
+		m_x + (static_cast<decltype(m_x)>(idx % m_cols) + 0.25f) * 
+			m_option_width,
+		m_y + (static_cast<decltype(m_y)>(idx / m_cols % m_rows) + 0.25f) * 
+			m_option_height
 	);
 }
 

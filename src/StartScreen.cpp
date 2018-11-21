@@ -6,7 +6,7 @@ namespace fe
 {
 
 StartScreen::StartScreen()
-	: m_menu(20.f, 20.f, 600.f, 250.f, 1, 4, 25)
+	: m_menu(40.f, 40.f, 600.f, 250.f, 2, 4, 25)
 	, m_file(0)
 {
 	m_menu.addOption(MenuOptionKey::Play, "Play");
@@ -23,6 +23,8 @@ StartScreen::StartScreen()
 	m_menu.addOption(MenuOptionKey::Play, "Test9");
 	m_menu.addOption(MenuOptionKey::Play, "Test10");
 	m_menu.addOption(MenuOptionKey::Play, "Test11");
+	m_menu.addOption(MenuOptionKey::Options, "Options");
+	m_menu.addOption(MenuOptionKey::Options, "Options");
 }
 
 void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)
