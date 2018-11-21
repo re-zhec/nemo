@@ -187,34 +187,36 @@ void Menu::delOption(const MenuOptionKey key, const std::string& txt,
 	// Ignore the rest of the method if that removed option was the only one 
 	// left on the menu. The cursor will correct itself once another option is 
 	// added
-	if (!m_options.empty()) {
-		// The highlight cursor needs to be readjusted if it was on or after the 
-		// option that was removed
-		if (auto cur_idx = translateTo1DIndex(m_sel_rc, m_cols);
-			cur_idx >= rm_idx)
-		{
-			// Move the cursor back if it was on the last option when that was 
-			// removed. There is nothing left at its current coordinate
-			if (cur_idx == m_options.size()) {
-				// Since there's nothing there, none of the other menu movement 
-				// methods can be called because they change the color of the option 
-				// the cursor was on. The cursor's coordinates need to be manually 
-				// changed to the preceding menu option's
-				--cur_idx;
-				m_sel_rc = translateToRowColumn(cur_idx, m_cols);
-			}
-			
-			// Otherwise, the cursor would just be pointing at the option following 
-			// the removed one. Either way, The option still has the nonselected 
-			// color, so change that
-			setOptionColor(cur_idx, m_cursor_color);
-		}
+	if (m_options.empty()) {
+		return;
+	}
 
-		// All options that followed the removed one need to have their render 
-		// positions shifted forward one slot
-		for (auto i = rm_idx; i < m_options.size(); ++i) {
-			presetOptionPosition(i);
+	// The highlight cursor needs to be readjusted if it was on or after the 
+	// option that was removed
+	if (auto cur_idx = translateTo1DIndex(m_sel_rc, m_cols);
+		cur_idx >= rm_idx)
+	{
+		// Move the cursor back if it was on the last option when that was 
+		// removed. There is nothing left at its current coordinate
+		if (cur_idx == m_options.size()) {
+			// Since there's nothing there, none of the other menu movement methods
+			// can be called because they change the color of the option  the 
+			// cursor was on. The cursor's coordinates need to be manually changed 
+			// to the preceding menu option's
+			--cur_idx;
+			m_sel_rc = translateToRowColumn(cur_idx, m_cols);
 		}
+		
+		// Otherwise, the cursor would just be pointing at the option following 
+		// the removed one. Either way, The option still has the nonselected 
+		// color, so change that
+		setOptionColor(cur_idx, m_cursor_color);
+	}
+
+	// All options that followed the removed one need to have their render 
+	// positions shifted forward one slot
+	for (auto i = rm_idx; i < m_options.size(); ++i) {
+		presetOptionPosition(i);
 	}
 }
 
