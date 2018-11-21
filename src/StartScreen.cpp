@@ -11,23 +11,10 @@ StartScreen::StartScreen()
 	, m_cfg_menu({0.f, 0.f}, 1280.f, 720.f, 4, 8)
 	, m_file(0)
 {
-	m_main_menu.addOption(MenuOptionKey::Play, "Play");
-	m_main_menu.addOption(MenuOptionKey::Options, "Options");
-	m_main_menu.addOption(MenuOptionKey::Exit, "Exit");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test1");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test2");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test3");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test4");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test5");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test6");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test7");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test8");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test9");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test10");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test11");
-	m_main_menu.addOption(MenuOptionKey::Play, "Test12");
-	m_main_menu.addOption(MenuOptionKey::Options, "Options");
-	m_main_menu.addOption(MenuOptionKey::Options, "Options");
+	m_main_menu.addOption(MainMenuKey::Play, "Play");
+	m_main_menu.addOption(MainMenuKey::Continue, "Continue");
+	m_main_menu.addOption(MainMenuKey::Settings, "Settings");
+	m_main_menu.addOption(MainMenuKey::Quit, "Quit");
 }
 
 void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)
@@ -66,24 +53,21 @@ void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)
 					LOG_DEBUG("enter key pressed");
 					
 					if (const auto selected = m_main_menu.getHoveredOption()) {
-						switch (const auto [key, id] = *selected;
-							key)
-						{
-							case MenuOptionKey::Play:
-								m_main_menu.setOptionText(
-									MenuOptionKey::Play,
-									"Poop"
-								);
+						switch (*selected) {
+							case MainMenuKey::Play:
+								m_main_menu.setOptionText(*selected, "Poop");
 								break;
-							case MenuOptionKey::Options:
-								m_main_menu.delOption(
-									MenuOptionKey::Options,
-									"Options"
-								);
+
+							case MainMenuKey::Continue:
+								m_file = 1;
 								break;
-							case MenuOptionKey::Exit:
+
+							case MainMenuKey::Settings:
+								m_main_menu.delOption(*selected);
+								break;
+
+							case MainMenuKey::Quit:
 								window.close();
-								LOG_DEBUG("Window closed");
 								break;
 						}
 					}

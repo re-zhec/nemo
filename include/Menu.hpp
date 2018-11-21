@@ -9,19 +9,18 @@
 namespace fe
 {
 
-enum class MenuOptionKey {
-	Play,
-	Options,
-	Exit
-};
-
 /**
  * \brief Graphical menu
  *
  * Calling the constructor creates an empty menu. The client must add options 
  * to the menu via \property addOption. The menu isn't displayed on the render 
  * window until \property Draw is called.
+ * 
+ * Menu options's IDs are templatized. This design is to help with compiler 
+ * warnings/errors if the client accidentally two options from two different 
+ * menus, given that the IDs are scoped enums, etc..
  */
+template <typename T> 
 class Menu
 {
 public:
@@ -65,52 +64,24 @@ public:
 	/**
 	 * \brief Add an option to the menu
 	 * 
-	 * Some menus can have multiple options that have different text but are 
-	 * associated with the same \a key. For example, if given a quiz question 
-	 * with only one correct answer, a menu with four options would have three
-	 * choices that corresponds to MenuOptionKey::Incorrect and one that
-	 * corresponds to MenuOptionKey::Correct. If which incorrect choice the 
-	 * player selects matters, the client should specify a unique number among 
-	 * the options associated with the same MenuOptionKey for the third 
-	 * parameter. 
+	 * The client must specify a unique ID for every menu option added. If a new 
+	 * option shares \a id with one of the existing ones in this menu, then this 
+	 * method generates an assertion error.
 	 * 
-	 * When retrieving the menu option the highlight cursor with \property 
-	 * getHoveredOption, the client will also receive the value that they passed
-	 * in for the third parameter.
-	 * 
-	 * It is up to the client to pass unique IDs for added options that have the 
-	 * same enumeration key in one menu if different actions need to be taken 
-	 * with each enumeration duplicate. They only have to be unique with that 
-	 * group. MenuOptionKey::Incorrect and MenuOptionKey::Correct can each have 
-	 * three duplicates ID'd 0, 1, and 2.
-	 * 
-	 * This method generates an assert error if the new text is empty. \property 
-	 * findOption relies on its text argument being an empty string to determine 
-	 * whether to include it in its search filters.
-	 * 
-	 * \param key		Menu option's enumeration identifier
+	 * \param id		Menu option's ID
 	 * \param txt		Text to display
-	 * \param id		[Optional] Relative ID if the menu already has multiple 
-	 * 					options with the same enumeration identifier
 	 */
-	void addOption(const MenuOptionKey key, const std::string& txt, 
-		const uint32_t id = 0);
+	void addOption(const T id, const std::string& txt);
 
 	/**
 	 * \brief Remove an option from the menu
 	 * 
-	 * \a key, \a txt, and \a id must match exactly with the arguments of the 
-	 * desired menu option that the the client added via \property addOption or 
-	 * changed the text of via \property setOptionText. If this method can't find
-	 * a match that exists in the menu, it generates an assert error.
+	 * This method finds the option based on its ID. If no options in the menu 
+	 * has \a id, then this method generates an assertion error.
 	 * 
-	 * \param key		Menu option's enumeration identifier
-	 * \param txt		Displayed text
-	 * \param id		[Optional] Relative ID if the menu already has multiple 
-	 * 					options with the same enumeration identifier
+	 * \param id		Menu option's ID
 	 */
-	void delOption(const MenuOptionKey key, const std::string& txt, 
-		const uint32_t id = 0);
+	void delOption(const T id);
 
 	/**
 	 * \brief Checks if the menu is empty
@@ -122,41 +93,26 @@ public:
 	/**
 	 * \brief Change an option's text
 	 * 
-	 * \a key and \a id must match exactly with the first and third arguments of 
-	 * the desired menu option the client added via \property addOption . If this
-	 * method can't find a match that exists in the menu, it generates an assert
-	 * error.
+	 * This method finds the option based on its ID. If no options in the menu 
+	 * has \a id, then this method generates an assertion error.
 	 * 
-	 * This method also generates an assert error if the new text is empty. 
-	 * \property findOption relies on its text argument being an empty string to 
-	 * determine whether to include it in its search filters.
-	 * 
-	 * \param key		Menu option's enumeration identifier
+	 * \param key		Menu option's ID
 	 * \param txt		New text to display
-	 * \param id		[Optional] Relative ID if the menu already has multiple 
-	 * 					options with the same enumeration identifier
 	 */
-	void setOptionText(const MenuOptionKey key, const std::string& txt, 
-		const uint32_t id = 0);
+	void setOptionText(const T id, const std::string& txt);
 
 	/**
 	 * \brief Change an option's color
 	 * 
 	 * The public version of this method.
 	 * 
-	 * \a key, \a txt, and \a id must match exactly with the arguments of the 
-	 * desired menu option that the the client added via \property addOption or 
-	 * changed the text of via \property setOptionText. If this method can't find
-	 * a match that exists in the menu, it generates an assert error.
+	 * This method finds the option based on its ID. If no options in the menu 
+	 * has \a id, then this method generates an assertion error.
 	 * 
-	 * \param key		Menu option's enumeration identifier
-	 * \param txt		Displayed text
+	 * \param key		Menu option's ID
 	 * \param color	New color
-	 * \param id		[Optional] Relative ID if the menu already has multiple 
-	 * 					options with the same enumeration identifier
 	 */
-	void setOptionColor(const MenuOptionKey key, const std::string& txt, 
-		const sf::Color color, const uint32_t id = 0);
+	void setOptionColor(const T id, const sf::Color color);
 	
 	/**
 	 * moveUp(), moveDown(), moveLeft(), and moveRight() move the highlight 
@@ -188,8 +144,8 @@ public:
 	/**
 	 * \brief Draws the menu on the render window.
 	 * 
-	 * This method must be called during every iteration of the game loop to keep 
-	 * the menu displayed.
+	 * This method should be called during every iteration of the game loop to 
+	 * keep the menu displayed.
 	 * 
 	 * \param window		Window for the graphical menu to be rendered on
 	 */
@@ -199,14 +155,12 @@ public:
 	 * \brief Get the option that the highlight cursor is currently on
 	 * 
 	 * Use this method if the player selects an option on the menu to find out 
-	 * what the player selected and react from there.
+	 * what the player selected.
 	 * 
-	 * \return Enumeration key of the highlighted menu option and its relative 
-	 * ID that the client had specified among those with the same enumeration 
-	 * key. Or nothing if the menu is empty
+	 * \return The menu option that the selection cursor is on via its ID, or 
+	 * nothing if the menu is empty
 	 */
-	std::optional<std::pair<MenuOptionKey, uint32_t>> 
-	getHoveredOption() const noexcept;
+	std::optional<T> getHoveredOption() const noexcept;
 
 private:
 	/**
@@ -248,13 +202,9 @@ private:
 	// current menu page number
 	sf::Color m_cursor_color;
 
-	///< Menu options. The first tuple component is an option's enumeration 
-	// key. The second component is the graphical text. However, it's possible 
-	// to have multiple options with the same enumeration key but different text.
-	// The third component of the tuple is to indicate exactly which duplicate of 
-	// the same key. If the third argument in \property addOption isn't specified 
-	// when called, this value would be 0.
-	std::vector<std::tuple<MenuOptionKey, sf::Text, uint32_t>> m_options;
+	///< Menu options. The first component is their IDs. The second is their
+	// graphical text.
+	std::vector<std::tuple<T, sf::Text>> m_options;
 
 	sf::Color m_backgd_color;		///< Menu background color
 	sf::RectangleShape m_backgd;	///< Rectangle that forms the menu's background
@@ -296,7 +246,7 @@ private:
 	 * This is a wrapper around the below version. It translates the given row 
 	 * and column number to an 1-D index to pass to the other version. A row and
 	 * column coordinate that is outside the menu option range will cause an 
-	 * error
+	 * assertion error
 	 * 
 	 * \param r			Option's row number
 	 * \param c			Option's Column number
@@ -309,11 +259,11 @@ private:
 	 * 
 	 * A private version of this method.
 	 * 
-	 * This one takes an 1-D index instead of a row and column numbers. The menu 
-	 * option container performs an out-of-bound check on the index argument
+	 * This one takes an 1-D index instead of a row and column numbers. An 
+	 * out-of-bound index will cause an assertion error.
 	 * 
-	 * \param r			Option's row number
-	 * \param c			Option's Column number
+	 * \param idx		1-D index corresponding to the option's row and column 
+	 * 					coordinate
 	 * \param color	New color
 	 */
 	void setOptionColor(const size_t idx, const sf::Color color);
@@ -321,27 +271,17 @@ private:
 	/**
 	 * \brief Search for an option
 	 * 
-	 * This method finds the first option that matches the arguments. Typically, 
-	 * the first one found in the vector is the only one. If there are more, 
-	 * they are ignored. The assumption is that the multiple duplicates with the 
-	 * same relative IDs were intentional on the client's part and that the 
-	 * client only needs to delete or change the text of the first option.
+	 * This method finds the option that matches \a id. It SHOULDN'T find more 
+	 * than one since \property addOption disallows multiple menu options having 
+	 * the same ID, but if for some reason there is, it grabs the first 
+	 * occurrence.
 	 * 
-	 * This method checks if \a txt is empty or not. 
+	 * \param id		Menu option's ID
 	 * 
-	 * \param key		Enumeration key
-	 * \param id		Relative ID if the menu already has multiple options with 
-	 * 					the same enumeration value.
-	 * \param txt		[Optional] Text
-	 * 
-	 * \return Non-const iterator to the first menu option that matches the 
-	 * arguments. If there is no match, \var m_options.end() is returned. 
-	 * 
-	 * method can include text as a filter in its string
+	 * \return Non-const iterator to the menu option found. If there is no match, 
+	 * \var m_options.end() is returned
 	 */
-	auto findOption(const MenuOptionKey key, const uint32_t id, 
-		const std::string& txt = "") 
-			-> decltype(m_options.begin());
+	auto findOption(const T id) -> decltype(m_options.begin());
 };
 
 }

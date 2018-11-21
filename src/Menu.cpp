@@ -75,7 +75,8 @@ namespace {
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-Menu::Menu(
+template <typename T>
+Menu<T>::Menu(
 	const std::pair<float, float> xy,
 	const float width,
 	const float height,
@@ -136,9 +137,13 @@ Menu::Menu(
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::addOption(const MenuOptionKey key, const std::string& txt, 
-	const uint32_t id)
-{	
+template <typename T>
+void Menu<T>::addOption(const T id, const std::string& txt)
+{
+	// Make sure there's no other menu options with the new ID
+	const auto it = findOption(id);
+	assert(it != m_options.cend());
+	
 	// Create graphical text
 	sf::Text option(txt, m_font, m_char_sz);
 
@@ -152,8 +157,8 @@ void Menu::addOption(const MenuOptionKey key, const std::string& txt,
 	}
 
 	// Add the option to the menu
-	m_options.push_back({key, option, id});
-	LOG_DEBUG("Added menu option {" << key << "," << txt << "," << id);
+	m_options.push_back({id, option});
+	LOG_DEBUG("Added menu option {" << id << "," << txt << "}");
 
 	// Preset its window position on the menu for future rendering. Since it was 
 	// just added to menu, use the index of the last element in the menu option 
@@ -165,7 +170,8 @@ void Menu::addOption(const MenuOptionKey key, const std::string& txt,
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-bool Menu::empty() const noexcept
+template <typename T>
+bool Menu<T>::empty() const noexcept
 {
 	return m_options.empty();
 }
@@ -174,11 +180,11 @@ bool Menu::empty() const noexcept
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::delOption(const MenuOptionKey key, const std::string& txt, 
-	const uint32_t id)
+template <typename T>
+void Menu<T>::delOption(const T id)
 {
 	// Search for the option
-	auto it = findOption(key, id, txt);
+	auto it = findOption(id);
 	assert(it != m_options.cend());
 
 	// Delete it
@@ -226,13 +232,13 @@ void Menu::delOption(const MenuOptionKey key, const std::string& txt,
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::setOptionText(const MenuOptionKey key, const std::string& txt, 
-	const uint32_t id)
+template <typename T>
+void Menu<T>::setOptionText(const T id, const std::string& txt)
 {
 	// Search for the option
-	const auto it = findOption(key, id);
+	const auto it = findOption(id);
 	assert(it != m_options.cend());
-	[[maybe_unused]] auto& [UNUSED0_, cur_txt, UNUSED2_] = *it;
+	[[maybe_unused]] auto& [UNUSED_, cur_txt] = *it;
 
 	// Change to new text
 	cur_txt.setString(txt);
@@ -242,11 +248,11 @@ void Menu::setOptionText(const MenuOptionKey key, const std::string& txt,
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::setOptionColor(const MenuOptionKey key, const std::string& txt, 
-	const sf::Color color, const uint32_t id)
+template <typename T>
+void Menu<T>::setOptionColor(const T id, const sf::Color color)
 {
 	// Search for the option
-	const auto it = findOption(key, id, txt);
+	const auto it = findOption(id);
 	assert(it != m_options.cend());
 
 	// Change its color
@@ -257,8 +263,8 @@ void Menu::setOptionColor(const MenuOptionKey key, const std::string& txt,
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-std::optional<std::pair<MenuOptionKey, uint32_t>> 
-Menu::getHoveredOption() const noexcept
+template <typename T>
+std::optional<T> Menu<T>::getHoveredOption() const noexcept
 {
 	if (m_options.empty()) {
 		// Empty menu
@@ -266,15 +272,16 @@ Menu::getHoveredOption() const noexcept
 	}
 
 	const auto idx = translateTo1DIndex(m_sel_rc, m_cols);
-	[[maybe_unused]] const auto& [key, UNUSED1_, id] = m_options[idx];
-	return std::make_optional(std::make_pair(key, id));
+	[[maybe_unused]] const auto& [id, UNUSED_] = m_options[idx];
+	return std::make_optional(id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::moveUp()
+template <typename T>
+void Menu<T>::moveUp()
 {
 	if (m_rows == 1 && m_options.size() < m_rows * m_cols) {
 		// Up => left in a horizontal menu but only if there aren't more options 
@@ -291,7 +298,8 @@ void Menu::moveUp()
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::moveDown()
+template <typename T>
+void Menu<T>::moveDown()
 {
 	if (m_rows == 1 && m_options.size() < m_rows * m_cols) {
 		// Down => right in a horizontal menu. Same second condition as moveUp()
@@ -306,7 +314,8 @@ void Menu::moveDown()
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::moveRight()
+template <typename T>
+void Menu<T>::moveRight()
 {
 	if (m_cols == 1) {
 		// Right => down in a vertical menu. Don't need check if there are more 
@@ -324,7 +333,8 @@ void Menu::moveRight()
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::moveLeft()
+template <typename T>
+void Menu<T>::moveLeft()
 {
 	if (m_cols == 1) {
 		// Left => up in a vertical menu. Don't need to check other conditions 
@@ -340,7 +350,8 @@ void Menu::moveLeft()
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::draw(sf::RenderWindow& window) const
+template <typename T>
+void Menu<T>::draw(sf::RenderWindow& window) const
 {
 	// Draw background
 	window.draw(m_backgd);
@@ -365,30 +376,31 @@ void Menu::draw(sf::RenderWindow& window) const
 
 	// Draw the options' text
 	for (auto i = start; i < end; ++i) {
-		[[maybe_unused]] const auto& [UNUSED0_, txt, UNUSED2_] = m_options[i];
+		[[maybe_unused]] const auto& [UNUSED_, txt] = m_options[i];
 		window.draw(txt);
 	}
 
-	// Draw the current page number out of the total so that the player knows
-	// where they are.
-	const auto npages = (n - 1) / page_sz + 1;
-	const auto page_txt = std::to_string(cur_page + 1) + "/" + 
-		std::to_string(npages);
-	
-	const auto char_sz = static_cast<decltype(m_x)>(m_char_sz);
-	const auto page_txt_sz = static_cast<decltype(m_x)>(page_txt.length()) 
-		* char_sz;
-	
-	// Place them at the bottom right of the displayable portion of the menu
-	const auto botright_x = m_x + m_width - page_txt_sz;
-	const auto botright_y = m_y + m_height - char_sz;
+	if (const auto npages = (n - 1) / page_sz + 1;
+		npages > 1) 
+	{
+		// Draw the current page number out of the total so that the player knows 
+		// where they are
+		const auto page_txt = std::to_string(cur_page + 1) + "/" + 
+			std::to_string(npages);
+		
+		const auto char_sz = static_cast<decltype(m_x)>(m_char_sz);
+		const auto page_txt_sz = static_cast<decltype(m_x)>(page_txt.length()) 
+			* char_sz;
+		
+		// Place them at the bottom right of the displayable portion of the menu
+		const auto botright_x = m_x + m_width - page_txt_sz;
+		const auto botright_y = m_y + m_height - char_sz;
 
-	sf::Text page_mark(page_txt, m_font, m_char_sz);
-	page_mark.setOrigin(0, char_sz / 2.f);
-	page_mark.setPosition(botright_x, botright_y);
-	window.draw(page_mark);
+		sf::Text page_mark(page_txt, m_font, m_char_sz);
+		page_mark.setOrigin(0, char_sz / 2.f);
+		page_mark.setPosition(botright_x, botright_y);
+		window.draw(page_mark);
 
-	if (npages > 1) {
 		// Draw scroll arrows
 		const auto radius = char_sz / 2.5f;
 
@@ -409,10 +421,11 @@ void Menu::draw(sf::RenderWindow& window) const
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::presetOptionPosition(const size_t idx)
+template <typename T>
+void Menu<T>::presetOptionPosition(const size_t idx)
 {
 	assert(idx < m_options.size());
-	[[maybe_unused]] auto& [UNUSED0_, txt, UNUSED2_] = m_options[idx];
+	[[maybe_unused]] auto& [UNUSED_, txt] = m_options[idx];
 	LOG_DEBUG(m_option_width << "," << m_option_height);
 
 	// Menu options are positioned from left to right down across rows. For every
@@ -431,7 +444,8 @@ void Menu::presetOptionPosition(const size_t idx)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::move(const Direction dir)
+template <typename T>
+void Menu<T>::move(const Direction dir)
 {
 	if (m_options.empty()) {
 		// No menu options => no cursor => no movement
@@ -493,10 +507,11 @@ void Menu::move(const Direction dir)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::setOptionColor(const size_t idx, const sf::Color color)
+template <typename T>
+void Menu<T>::setOptionColor(const size_t idx, const sf::Color color)
 {
 	assert(idx < m_options.size());
-	[[maybe_unused]] auto& [UNUSED0_, txt, UNUSED2_] = m_options[idx];
+	[[maybe_unused]] auto& [UNUSED_, txt] = m_options[idx];
 	txt.setFillColor(color);
 }
 
@@ -504,7 +519,8 @@ void Menu::setOptionColor(const size_t idx, const sf::Color color)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::setOptionColor(const size_t r, const size_t c, 
+template <typename T>
+void Menu<T>::setOptionColor(const size_t r, const size_t c, 
 	const sf::Color color)
 {
 	const auto idx = translateTo1DIndex(r, c, m_cols);
@@ -515,23 +531,15 @@ void Menu::setOptionColor(const size_t r, const size_t c,
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-auto Menu::findOption(const MenuOptionKey key, const uint32_t id, 
-	const std::string& txt) 
-		 -> decltype(m_options.begin())
+template <typename T>
+auto Menu<T>::findOption(const T id) -> decltype(m_options.begin())
 {
 	// setOptionText() uses the returned iterator to modify the contents of the
 	// object it points to, so normal iterators are needed instead of const ones.
 	auto it = std::find_if(m_options.begin(), m_options.end(),
-		[key, &txt, id](const auto& option) {
-			const auto& [key_i, txt_i, id_i] = option;
-			auto match = key_i == key && id_i == id;
-			
-			// If text isn't empty, include it in the comparison
-			if (!txt.empty()) {
-				match &= txt_i.getString() == txt; 
-			}
-
-			return match;
+		[id](const auto& option) {
+			const auto& [id_i, UNUSED_] = option;
+			return id_i == id;
 		}
 	);
 
