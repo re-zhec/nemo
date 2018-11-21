@@ -259,6 +259,7 @@ std::optional<std::pair<MenuOptionKey, uint32_t>>
 Menu::getHoveredOption() const noexcept
 {
 	if (m_options.empty()) {
+		// Empty menu
 		return {};
 	}
 
@@ -430,8 +431,8 @@ void Menu::presetOptionPosition(const size_t idx)
 
 void Menu::move(const Direction dir)
 {
-	// No menu options => no cursor => no movement
 	if (m_options.empty()) {
+		// No menu options => no cursor => no movement
 		return;
 	}
 
