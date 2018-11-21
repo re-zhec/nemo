@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <optional>
 #include <SFML/Graphics.hpp>
 
 namespace fe
@@ -101,6 +102,13 @@ public:
 		const uint32_t id = 0);
 
 	/**
+	 * \brief Checks if the menu is empty
+	 *
+	 * \return True if yes; false otherwise
+	 */
+	bool empty() const;
+
+	/**
 	 * \brief Change an option's text
 	 * 
 	 * \a key and \a id must match exactly with the first and third arguments of 
@@ -182,10 +190,11 @@ public:
 	 * Use this method if the player selects an option on the menu to find out 
 	 * what the player selected and react from there.
 	 * 
-	 * \return Enumeration value of the highlighted menu option and, if there are 
-	 * multiple options with this enumeration value, which one it is by ID.
+	 * \return Enumeration key of the highlighted menu option and its relative 
+	 * ID that the client had specified among those with the same enumeration 
+	 * key. Or nothing if the menu is empty
 	 */
-	std::pair<MenuOptionKey, uint32_t> getHoveredOption() const;
+	std::optional<std::pair<MenuOptionKey, uint32_t>> getHoveredOption() const;
 
 private:
 	/**

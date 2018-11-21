@@ -146,6 +146,15 @@ void Menu::addOption(const MenuOptionKey key, const std::string& txt,
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+bool Menu::empty() const
+{
+	return m_options.empty();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 void Menu::delOption(const MenuOptionKey key, const std::string& txt, 
 	const uint32_t id)
 {
@@ -155,35 +164,40 @@ void Menu::delOption(const MenuOptionKey key, const std::string& txt,
 
 	// Delete it
 	it = m_options.erase(it);
-	const auto rm_idx = static_cast<decltype(m_options.size())>
-		(it - m_options.cbegin());
+	const auto rm_idx = static_cast<decltype(m_options.size())>(
+		it - m_options.cbegin());
 
-	// The highlight cursor needs to be readjusted if it was on or after the 
-	// option that was removed
-	if (auto cur_idx = translateTo1DIndex(m_sel_rc, m_cols);
-		cur_idx >= rm_idx)
-	{
-		// Move the cursor back if it was on the last option when that was 
-		// removed. There is nothing left at its current coordinate
-		if (cur_idx == m_options.size()) {
-			// Since there's nothing there, none of the other menu movement methods
-			// can be called because they change the color of the option the cursor 
-			// was on. The cursor's coordinates need to be manually changed to the 
-			// preceding menu option's
-			--cur_idx;
-			m_sel_rc = translateToRowColumn(cur_idx, m_cols);
+	// Ignore the rest of the method if that removed option was the only one 
+	// left on the menu. The cursor will correct itself once another option is 
+	// added
+	if (!m_options.empty()) {
+		// The highlight cursor needs to be readjusted if it was on or after the 
+		// option that was removed
+		if (auto cur_idx = translateTo1DIndex(m_sel_rc, m_cols);
+			cur_idx >= rm_idx)
+		{
+			// Move the cursor back if it was on the last option when that was 
+			// removed. There is nothing left at its current coordinate
+			if (cur_idx == m_options.size()) {
+				// Since there's nothing there, none of the other menu movement 
+				// methods can be called because they change the color of the option 
+				// the cursor was on. The cursor's coordinates need to be manually 
+				// changed to the preceding menu option's
+				--cur_idx;
+				m_sel_rc = translateToRowColumn(cur_idx, m_cols);
+			}
+			
+			// Otherwise, the cursor would just be pointing at the option following 
+			// the removed one. Either way, The option still has the nonselected 
+			// color, so change that
+			setOptionColor(cur_idx, sf::Color::Red);
 		}
 
-		// Otherwise, the cursor would just be pointing at the option following 
-		// the removed one. Either way, The option still has the nonselected 
-		// color, so change that
-		setOptionColor(cur_idx, sf::Color::Red);
-	}
-
-	// All options that followed the removed one need to have their render 
-	// positions shifted forward one slot
-	for (auto i = rm_idx; i < m_options.size(); ++i) {
-		presetOptionPosition(i);
+		// All options that followed the removed one need to have their render 
+		// positions shifted forward one slot
+		for (auto i = rm_idx; i < m_options.size(); ++i) {
+			presetOptionPosition(i);
+		}
 	}
 }
 
@@ -222,11 +236,16 @@ void Menu::setOptionColor(const MenuOptionKey key, const std::string& txt,
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-std::pair<MenuOptionKey, uint32_t> Menu::getHoveredOption() const
+std::optional<std::pair<MenuOptionKey, uint32_t>> 
+Menu::getHoveredOption() const
 {
+	if (m_options.empty()) {
+		return {};
+	}
+
 	const auto idx = translateTo1DIndex(m_sel_rc, m_cols);
 	[[maybe_unused]] const auto& [key, UNUSED1_, id] = m_options[idx];
-	return {key, id};
+	return std::make_optional(std::make_pair(key, id));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -389,7 +408,12 @@ void Menu::presetOptionPosition(size_t idx)
 ////////////////////////////////////////////////////////////////////////////////
 
 void Menu::move(const Direction dir)
-{	
+{
+	// No menu options => no cursor => no movement
+	if (m_options.empty()) {
+		return;
+	}
+
 	// Change the current menu option to the non-selected color before moving to
 	// the next option
 	auto& [r, c] = m_sel_rc;
@@ -408,7 +432,7 @@ void Menu::move(const Direction dir)
 	const auto n = m_options.size();
 	const auto rows_touched = (n - 1) / m_cols + 1;
 
-	// Get the number of columns that are filled in the last row
+	// Number of columns that are filled in the last row
 	const auto cols_filled = n % m_cols != 0 ? n % m_cols : m_cols;
 
 	// Determine the bottommost row and rightmost column numbers from the
