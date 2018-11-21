@@ -194,7 +194,8 @@ public:
 	 * ID that the client had specified among those with the same enumeration 
 	 * key. Or nothing if the menu is empty
 	 */
-	std::optional<std::pair<MenuOptionKey, uint32_t>> getHoveredOption() const;
+	std::optional<std::pair<MenuOptionKey, uint32_t>> 
+	getHoveredOption() const;
 
 private:
 	/**
