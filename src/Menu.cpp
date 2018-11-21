@@ -406,7 +406,7 @@ void Menu::draw(sf::RenderWindow& window) const
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Menu::presetOptionPosition(size_t idx)
+void Menu::presetOptionPosition(const size_t idx)
 {
 	assert(idx < m_options.size());
 	[[maybe_unused]] auto& [UNUSED0_, txt, UNUSED2_] = m_options[idx];
