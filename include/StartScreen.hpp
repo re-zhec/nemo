@@ -12,7 +12,16 @@ public:
 		Play,
 		Continue,
 		Settings,
-		Quit
+		Quit,
+		A,
+		B,
+		C,
+		D,
+		E,
+		F,
+		G,
+		H,
+		I
 	};
 
 	StartScreen();

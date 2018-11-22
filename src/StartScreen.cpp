@@ -6,7 +6,7 @@ namespace fe
 {
 
 StartScreen::StartScreen()
-	: m_main_menu({40.f, 40.f}, 600.f, 250.f, 2, 4)
+	: m_main_menu({40.f, 40.f}, 600.f, 150.f, 2, 4)
 	, m_file_menu({40.f, 40.f}, 200.f, 600.f, 1, 4)
 	, m_cfg_menu({0.f, 0.f}, 1280.f, 720.f, 4, 8)
 	, m_file(0)
@@ -15,6 +15,14 @@ StartScreen::StartScreen()
 	m_main_menu.addOption(MainMenuKey::Continue, "Continue");
 	m_main_menu.addOption(MainMenuKey::Settings, "Settings");
 	m_main_menu.addOption(MainMenuKey::Quit, "Quit");
+	m_main_menu.addOption(MainMenuKey::A, "Quit");
+	m_main_menu.addOption(MainMenuKey::B, "Quit");
+	m_main_menu.addOption(MainMenuKey::C, "Quit");
+	m_main_menu.addOption(MainMenuKey::D, "Quit");
+	m_main_menu.addOption(MainMenuKey::E, "Quit");
+	m_main_menu.addOption(MainMenuKey::F, "Quit");
+	m_main_menu.addOption(MainMenuKey::G, "Quit");
+	m_main_menu.addOption(MainMenuKey::H, "Quit");
 }
 
 void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)

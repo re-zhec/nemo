@@ -44,10 +44,11 @@ public:
 	 * \param height		Overall height	
 	 * \param rows			Maximum rows of menu options that to be displayed 
 	 * \param cols			Maximum columns of menu options that to be displayed
-	 * \param char_sz			[Optional] Character size.
-	 * \param option_color	[Optional] Menu option text and box outline's color
-	 * \param backgd_color	[Optional] Menu background color
+	 * \param char_sz			[Optional] Character size
+	 * \param txt_color		[Optional] Menu option text color
 	 * \param cursor_color	[Optional] Selection cursor and page number's color
+	 * \param cell_color		[Optional] Fill and outlien color for option cell
+	 * \param backgd_color	[Optional] Fill and outline color for entire menu
 	 */
 	Menu(
 		const std::pair<float, float> xy,
@@ -56,9 +57,12 @@ public:
 		const size_t rows, 
 		const size_t cols, 
 		const size_t char_sz = 22, 
-		const sf::Color option_color = {5, 255, 5},
-		const sf::Color backgd_color = {25, 25, 25},
-		const sf::Color cursor_color = {240, 240, 240}
+		const sf::Color txt_color = {43, 7, 0},
+		const sf::Color cursor_color = {244, 50, 116},
+		const std::pair<sf::Color, sf::Color> cell_color 
+			= {{249, 231, 228}, {229, 197, 191}},
+		const std::pair<sf::Color, sf::Color> backgd_color 
+			= {{251, 245, 240}, {243, 200, 214}}
 	);
 
 	/**
@@ -189,11 +193,9 @@ private:
 	size_t m_cols;		///< Maximum columns of menu options to be displayed
 	size_t m_char_sz;	///< Character size
 
-	float m_option_width;		///< Width of each menu option
-	float m_option_height;		///< Height of each menu option
-
-	///< Color for the menu option text and the menu box outline
-	sf::Color m_option_color;
+	decltype(m_x) m_option_width;		///< Width of each menu option
+	decltype(m_y) m_option_height;	///< Height of each menu option
+	sf::Color m_option_color;			///< Color for the menu option text
 
 	///< Row and column coordinate of the menu's selection cursor
 	std::pair<size_t, size_t> m_sel_rc;
@@ -206,7 +208,9 @@ private:
 	// graphical text.
 	std::vector<std::tuple<T, sf::Text>> m_options;
 
-	sf::Color m_backgd_color;		///< Menu background color
+	///< Rectangular background cells for menu options per page.
+	std::vector<sf::RectangleShape> m_cells;
+
 	sf::RectangleShape m_backgd;	///< Rectangle that forms the menu's background
 	sf::Font m_font;					///< Font used
 
