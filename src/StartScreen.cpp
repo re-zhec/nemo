@@ -6,23 +6,27 @@ namespace fe
 {
 
 StartScreen::StartScreen()
-	: m_main_menu({40.f, 40.f}, {600.f, 150.f}, 2, 4)
-	, m_file_menu({40.f, 40.f}, {200.f, 600.f}, 1, 4)
+	// : m_main_menu("xml/start_menu.xml")
+	: m_main_menu("xml/start_menu.xml")
+	, m_file_menu({40.f, 40.f}, {600.f, 150.f}, 2, 4)
 	, m_cfg_menu({0.f, 0.f}, {1280.f, 720.f}, 4, 8)
 	, m_file(0)
 {
-	m_main_menu.addOption(MainMenuKey::Play, "Play");
-	m_main_menu.addOption(MainMenuKey::Continue, "Continue");
-	m_main_menu.addOption(MainMenuKey::Settings, "Settings");
-	m_main_menu.addOption(MainMenuKey::Quit, "Quit");
-	m_main_menu.addOption(MainMenuKey::A, "Quit");
-	m_main_menu.addOption(MainMenuKey::B, "Quit");
-	m_main_menu.addOption(MainMenuKey::C, "Quit");
-	m_main_menu.addOption(MainMenuKey::D, "Quit");
-	m_main_menu.addOption(MainMenuKey::E, "Quit");
-	m_main_menu.addOption(MainMenuKey::F, "Quit");
-	m_main_menu.addOption(MainMenuKey::G, "Quit");
-	m_main_menu.addOption(MainMenuKey::H, "Quit");
+	m_main_menu
+		.addOption(MainMenuKey::Play, "Play")
+		.addOption(MainMenuKey::Continue, "Continue")
+		.addOption(MainMenuKey::Settings, "Settings")
+		.addOption(MainMenuKey::Quit, "Quit")
+		.addOption(MainMenuKey::A, "Quit")
+		.addOption(MainMenuKey::B, "Quit")
+		.addOption(MainMenuKey::C, "Quit")
+		.addOption(MainMenuKey::D, "Quit")
+		.addOption(MainMenuKey::E, "Quit")
+		.addOption(MainMenuKey::F, "Quit")
+		.addOption(MainMenuKey::G, "Quit")
+		.addOption(MainMenuKey::H, "Quit");
+
+	m_file_menu.addOption(MainMenuKey::Play, "Play");
 }
 
 void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)

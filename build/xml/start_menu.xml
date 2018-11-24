@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<menu>
+	<pos x="40" y="40" />
+	<dim width="600" height="150" />
+	<page rows="2" cols="4" />
+</menu>

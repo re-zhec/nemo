@@ -4,7 +4,8 @@
 			"name": "Win32",
 			"includePath": [
 				"${workspaceFolder}/**",
-				"C:/SFML-2.5.1/include"
+				"C:/SFML/include",
+				"C:/pugixml/include"
 			],
 			"defines": [
 				"_DEBUG",

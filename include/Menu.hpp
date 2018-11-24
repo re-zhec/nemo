@@ -27,6 +27,7 @@ public:
 	/////////////////////////////////////////////////////////
 	// Type alias
 	/////////////////////////////////////////////////////////
+	using float2 = std::pair<float, float>;
 	using sf_color2 = std::pair<sf::Color, sf::Color>;
 	using sf_color3 = std::tuple<sf::Color, sf::Color, sf::Color>;
 	
@@ -34,7 +35,7 @@ public:
 	// Methods
 	/////////////////////////////////////////////////////////
 	/**
-	 * \brief Constructs an empty menu
+	 * \brief Constructs an empty menu.
 	 * 
 	 * Upon construction, the menu will be empty. The client should add options 
 	 * to the menu before calling \property draw; otherwise, the menu would be 
@@ -44,11 +45,11 @@ public:
 	 * empty space where the rest of the options would normally be.
 	 * 
 	 * This constructor generates an assertion error if 
-	 * 	1. \a xy, \a dim, or \a margins contains negative values.
+	 * 	1. \a pos, \a dim, or \a margins contains negative values.
 	 * 	2. \a rows or \a cols is 0.
 	 * 	3. a font file cannot be found at \var font_file.
 	 * 
-	 * \param xy			Starting xy-coordinate in the render window.
+	 * \param pos			Starting xy-coordinate in the render window.
 	 * \param dim			Overall size. This doesn't include the page number that 
 	 * 						may be added directly below the menu.
 	 * \param rows			Maximum rows of menu options per page.
@@ -78,8 +79,8 @@ public:
 	 * \param char_sz				Character size of each menu option's text.
 	 */
 	Menu(
-		const std::pair<float, float> xy,
-		const std::pair<float, float> dim,
+		const float2 pos,
+		const float2 dim,
 		const size_t rows, 
 		const size_t cols, 
 
@@ -87,11 +88,21 @@ public:
 		const sf_color3 cursor_color = {{244,50,116}, {250,250,250}, {229,197,191}},
 		const sf_color2 box_color = {{251,245,240}, {243,200,214}},
 		
-		const std::pair<float, float> outer_margins = {10.f, 10.f},
-		const std::pair<float, float> inner_margins = {10.f, 10.f},
+		const float2 outer_margins = {10.f, 10.f},
+		const float2 inner_margins = {10.f, 10.f},
 		const std::string font_file = "font/Montserrat/Montserrat-Regular.ttf",
 		const size_t char_sz = 20
 	);
+
+	/**
+	 * \brief Constructs an empty menu.
+	 * 
+	 * This constructor reads an XML file containing the arguments for the first 
+	 * constructor, extracts them, and calls the above constructor with them.
+	 * 
+	 * \param file		Path to the file containing menu parameters.
+	 */
+	Menu(const std::string& xmlfile);
 
 	/**
 	 * \brief Add an option to the menu.
@@ -102,8 +113,12 @@ public:
 	 * 
 	 * \param id		ID of menu option to add.
 	 * \param txt		Text to display.
+	 * 
+	 * \return A reference to the object itself. This allows for chaining 
+	 * multiples and combinations of \property addOption, \property delOption, 
+	 * \property setOptionText, \property setOptionColor, etc..
 	 */
-	void addOption(const T id, const std::string& txt);
+	Menu& addOption(const T id, const std::string& txt);
 
 	/**
 	 * \brief Remove an option from the menu.
@@ -112,15 +127,12 @@ public:
 	 * has \a id, this method generates an assertion error.
 	 * 
 	 * \param id		ID of the menu option to remove.
+	 * 
+	 * \return A reference to the object itself. This allows for chaining 
+	 * multiples and combinations of \property addOption, \property delOption, 
+	 * \property setOptionText, \property setOptionColor, etc..
 	 */
-	void delOption(const T id);
-
-	/**
-	 * \brief Checks if the menu is empty.
-	 *
-	 * \return True if so; false otherwise.
-	 */
-	bool empty() const noexcept;
+	Menu& delOption(const T id);
 
 	/**
 	 * \brief Change an option's text
@@ -130,8 +142,12 @@ public:
 	 * 
 	 * \param key		Menu option's ID.
 	 * \param txt		New text to display.
+	 * 
+	 * \return A reference to the object itself. This allows for chaining 
+	 * multiples and combinations of \property addOption, \property delOption, 
+	 * \property setOptionText, \property setOptionColor, etc..
 	 */
-	void setOptionText(const T id, const std::string& txt);
+	Menu& setOptionText(const T id, const std::string& txt);
 
 	/**
 	 * \brief Change an option's colors.
@@ -143,8 +159,19 @@ public:
 	 * 
 	 * \param key		ID of the menu option to change the colors of.
 	 * \param colors	New color set.
+	 * 
+	 * \return A reference to the object itself. This allows for chaining 
+	 * multiples and combinations of \property addOption, \property delOption, 
+	 * \property setOptionText, \property setOptionColor, etc..
 	 */
-	void setOptionColor(const T id, const sf_color3 color);
+	Menu& setOptionColor(const T id, const sf_color3 color);
+
+	/**
+	 * \brief Checks if the menu is empty.
+	 *
+	 * \return True if so; false otherwise.
+	 */
+	bool empty() const noexcept;
 	
 	/**
 	 * moveUp(), moveDown(), moveLeft(), and moveRight() move the menu's cursor 
@@ -197,6 +224,18 @@ private:
 	// Additional types
 	/////////////////////////////////////////////////////////
 	/**
+	 * \brief Structure containing all the arguments needed to construct a Menu
+	 * object, based on the parameters of the first constructor. The second 
+	 * constructor creates one from reading the XML file
+	 */
+	using ctor_args = struct ctor_args {
+		float2 pos;
+		float2 dim;
+		size_t rows;
+		size_t cols;
+	};
+
+	/**
 	 * \brief Enumeration for which direction the player moves the cursor to in 
 	 * the menu.
 	 * 
@@ -216,17 +255,17 @@ private:
 	///< Starting xy-coordinate relative to the render window.
 	//		1. X-coordinate.
 	//		2. Y-coordinate.
-	std::pair<float, float> m_xy;
+	float2 m_pos;
 	///< Size of the entire menu. This doesn't include the page number and 
 	// navigation arrow indicators that may be added directly below the menu.
 	//		1. Width.
 	//		2. Height.
-	std::pair<float, float> m_dim;
+	float2 m_dim;
 
 	///< Margins between the sides of the menu and of the outer menu options.
 	//		1. Horizontal.
 	//		2. Vertical.
-	std::pair<float, float> m_page_margins;
+	float2 m_page_margins;
 
 	///< Maximum rows of menu options per page.
 	size_t m_rows;
@@ -277,6 +316,31 @@ private:
 	/////////////////////////////////////////////////////////
 	// Methods
 	/////////////////////////////////////////////////////////
+	/**
+	 * \brief Construct an empty menu from a struct containing arguments for the
+	 * first public constructor.
+	 * 
+	 * This constructor works in tandem with \property parseXML to implement 
+	 * the second public constructor, which takes in an XML file containing the 
+	 * menu specifications.
+	 */
+	Menu(ctor_args args);
+
+	/**
+	 * \brief Parse an XML file that contains arguments for constructing a Menu 
+	 * object.
+	 * 
+	 * This method works in tandem with the private constructor to implement the 
+	 * second public constructor, which takes in an XML file.
+	 * 
+	 * It generates an assertion error if the XML parsing fails for any 
+	 * reason.
+	 * 
+	 * \return Struct containing arguments needed by the first public 
+	 * constructor.
+	 */
+	ctor_args parseXML(const std::string& xmlfile);
+
 	/**
 	 * \brief Set where a menu option's text should be drawn on the render 
 	 * window.

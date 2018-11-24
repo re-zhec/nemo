@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <pugixml.hpp>
 #include "../include/logger.hpp"
 #include "../include/Menu.hpp"
 
@@ -77,20 +78,20 @@ namespace {
 
 template <typename T> 
 Menu<T>::Menu(
-	const std::pair<float, float> xy,
-	const std::pair<float, float> dim,
+	const float2 pos,
+	const float2 dim,
 	const size_t rows, 
 	const size_t cols,
 
 	const std::tuple<sf::Color, sf::Color, sf::Color> option_color,
 	const std::tuple<sf::Color, sf::Color, sf::Color> cursor_color,
 	const std::pair<sf::Color, sf::Color> box_color,
-	const std::pair<float, float> outer_margins,
-	const std::pair<float, float> inner_margins,
+	const float2 outer_margins,
+	const float2 inner_margins,
 	const std::string font_file,
 	const size_t char_sz
 )	
-	: m_xy(xy)
+	: m_pos(pos)
 	, m_dim(dim)
 	, m_page_margins(outer_margins)
 	, m_rows(rows)
@@ -99,7 +100,7 @@ Menu<T>::Menu(
 	, m_cursor_color(cursor_color)
 	, m_char_sz(char_sz)	
 {
-	assert(m_xy >= std::make_pair(0.f, 0.f));
+	assert(m_pos >= std::make_pair(0.f, 0.f));
 	assert(m_dim >= std::make_pair(0.f, 0.f));
 	assert(m_rows > 0);
 	assert(m_cols > 0);
@@ -109,7 +110,7 @@ Menu<T>::Menu(
 	assert(success);
 
 	// Create the menu box.
-	const auto [x, y] = m_xy;
+	const auto [x, y] = m_pos;
 	const auto [width, height] = m_dim;
 	const auto& [box_back_color, box_bord_color] = box_color;
 
@@ -141,11 +142,12 @@ Menu<T>::Menu(
 	for (auto i = 0u; i < noptions_per_page; ++i) {
 		// Adjust cell cize so that inner margins can be inserted between them.
 		const auto [inner_hzmargin, inner_vtmargin] = inner_margins;
-		
-		sf::RectangleShape cell({
-			option_width - 2.f * inner_hzmargin, 
-			option_height - 2.f * inner_vtmargin
-		});
+		const auto cell_width = option_width - 2.f * inner_hzmargin;
+		const auto cell_height = option_height - 2.f * inner_vtmargin;
+		assert(cell_width > m_char_sz);
+		assert(cell_height > m_char_sz);
+
+		sf::RectangleShape cell({cell_width, cell_height});
 
 		// Insert inner margins.
 		cell.setOrigin(-inner_hzmargin, -inner_vtmargin);
@@ -171,7 +173,17 @@ Menu<T>::Menu(
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::addOption(const T id, const std::string& txt)
+Menu<T>::Menu(const std::string& xmlfile)
+	: Menu(parseXML(xmlfile))
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+Menu<T>& Menu<T>::addOption(const T id, const std::string& txt)
 {
 	// Make sure there is no other menu option that has the new ID.
 	const auto it = findOption(id);
@@ -194,7 +206,7 @@ void Menu<T>::addOption(const T id, const std::string& txt)
 	// it was just added to menu, we can use the index of the last element in the
 	// menu option container.
 	presetTextPosition(idx);
-	LOG_DEBUG("Added menu option {" << id << "," << txt << "}");
+	return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -202,17 +214,7 @@ void Menu<T>::addOption(const T id, const std::string& txt)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool Menu<T>::empty() const noexcept
-{
-	return m_options.empty();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-void Menu<T>::delOption(const T id)
+Menu<T>& Menu<T>::delOption(const T id)
 {
 	// Search for the option.
 	auto it = findOption(id);
@@ -227,7 +229,7 @@ void Menu<T>::delOption(const T id)
 	// left on the menu. The cursor will correct itself once another option is 
 	// added.
 	if (m_options.empty()) {
-		return;
+		return *this;
 	}
 
 	// All options that followed the removed one need to have their text's render 
@@ -257,6 +259,8 @@ void Menu<T>::delOption(const T id)
 		// colors, so change that.
 		setOptionColor(cur_idx, m_cursor_color);
 	}
+
+	return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -264,7 +268,7 @@ void Menu<T>::delOption(const T id)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::setOptionText(const T id, const std::string& txt)
+Menu<T>& Menu<T>::setOptionText(const T id, const std::string& txt)
 {
 	// Search for the option.
 	const auto it = findOption(id);
@@ -273,6 +277,7 @@ void Menu<T>::setOptionText(const T id, const std::string& txt)
 
 	// Change to new text.
 	cur_txt.setString(txt);
+	return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -280,7 +285,7 @@ void Menu<T>::setOptionText(const T id, const std::string& txt)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::setOptionColor(const T id, const sf_color3 color)
+Menu<T>& Menu<T>::setOptionColor(const T id, const sf_color3 color)
 {
 	// Search for the option.
 	const auto it = findOption(id);
@@ -288,6 +293,7 @@ void Menu<T>::setOptionColor(const T id, const sf_color3 color)
 
 	// Change its colors.
 	setOptionColor(it - m_options.cbegin(), color);
+	return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -295,16 +301,9 @@ void Menu<T>::setOptionColor(const T id, const sf_color3 color)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-std::optional<T> Menu<T>::getHoveredOption() const noexcept
+bool Menu<T>::empty() const noexcept
 {
-	if (m_options.empty()) {
-		// Empty menu.
-		return {};
-	}
-
-	const auto idx = translateTo1DIndex(m_cursor_rc, m_cols);
-	[[maybe_unused]] const auto& [id, UNUSED1_, UNUSED2_] = m_options[idx];
-	return std::make_optional(id);
+	return m_options.empty();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -422,6 +421,69 @@ void Menu<T>::draw(sf::RenderWindow& window)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
+std::optional<T> Menu<T>::getHoveredOption() const noexcept
+{
+	if (m_options.empty()) {
+		// Empty menu.
+		return {};
+	}
+
+	const auto idx = translateTo1DIndex(m_cursor_rc, m_cols);
+	[[maybe_unused]] const auto& [id, UNUSED1_, UNUSED2_] = m_options[idx];
+	return std::make_optional(id);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+Menu<T>::Menu(ctor_args args)
+	: Menu(
+		args.pos,
+		args.dim,
+		args.rows,
+		args.cols
+	)
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+typename Menu<T>::ctor_args 
+Menu<T>::parseXML(const std::string& xmlfile)
+{
+	pugi::xml_document doc;
+	const auto result = doc.load_file(xmlfile.c_str());
+	assert(result.status == pugi::status_ok);
+
+	const auto menu = doc.child("menu");
+	const auto pos = std::make_pair(
+		menu.child("pos").attribute("x").as_float(), 
+		menu.child("pos").attribute("y").as_float()
+	);
+
+	const auto dim = std::make_pair(
+		menu.child("dim").attribute("width").as_float(),
+		menu.child("dim").attribute("height").as_float()
+	);
+
+	const auto rows = menu.child("page").attribute("rows").as_ullong();
+	const auto cols = menu.child("page").attribute("cols").as_ullong();
+	
+	ctor_args args = {
+		pos,
+		dim,
+		rows,
+		cols
+	};
+	return args;
+}
+
+template <typename T>
 void Menu<T>::presetTextPosition(const size_t idx)
 {
 	assert(idx < m_options.size());
@@ -438,7 +500,7 @@ void Menu<T>::presetTextPosition(const size_t idx)
 	// it is placed in.
 	const auto [width, height] = cell.getSize();
 	const auto hzalign = .075f * width;
-	const auto vtalign = .5f * (height - m_char_sz);
+	const auto vtalign = .45f * (height - m_char_sz);
 	txt.move(hzalign, vtalign);
 }
 
@@ -503,8 +565,7 @@ void Menu<T>::move(const Direction dir)
 	}
 
 	// Color the menu option the cursor just moved to.
-	setOptionColor(r, c, m_cursor_color);	
-	LOG_DEBUG("New cursor location: (" << r << "," << c << ")");
+	setOptionColor(r, c, m_cursor_color);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -572,9 +633,8 @@ void Menu<T>::drawPageRef(sf::RenderWindow& window) const
 
 	// Draw a small box that will contain the page numbers and navigation arrow
 	// indicators, assuming the menu has more than one page.
-	const auto atpage_box_height = 25.f;			
-	const auto atpage_box_width = static_cast<float>(atpage_txt.length() 
-		* m_char_sz);
+	constexpr auto atpage_box_height = 25.f;			
+	constexpr auto atpage_box_width = 5.f * atpage_box_height;
 
 	// The box should have the same background layer as the menu box's since it 
 	// will be appended to the menu. 
