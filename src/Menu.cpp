@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cassert>
-#include <pugixml.hpp>
 #include "../include/logger.hpp"
 #include "../include/Menu.hpp"
 
@@ -82,14 +81,13 @@ Menu<T>::Menu(
 	const float2 dim,
 	const size_t rows, 
 	const size_t cols,
-
-	const std::tuple<sf::Color, sf::Color, sf::Color> option_color,
-	const std::tuple<sf::Color, sf::Color, sf::Color> cursor_color,
-	const std::pair<sf::Color, sf::Color> box_color,
 	const float2 outer_margins,
 	const float2 inner_margins,
-	const std::string font_file,
-	const size_t char_sz
+	const size_t char_sz,
+	const sf_color3 option_color,
+	const sf_color3 cursor_color,
+	const sf_color2 box_color,
+	const std::string font_file
 )	
 	: m_pos(pos)
 	, m_dim(dim)
@@ -104,10 +102,11 @@ Menu<T>::Menu(
 	assert(m_dim >= std::make_pair(0.f, 0.f));
 	assert(m_rows > 0);
 	assert(m_cols > 0);
+	assert(m_char_sz > 0);
 
 	// Load the font file.
-	const auto success = m_font.loadFromFile(font_file);
-	assert(success);
+	const auto found = m_font.loadFromFile(font_file);
+	assert(found);
 
 	// Create the menu box.
 	const auto [x, y] = m_pos;
@@ -421,7 +420,7 @@ void Menu<T>::draw(sf::RenderWindow& window)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-std::optional<T> Menu<T>::getHoveredOption() const noexcept
+std::optional<T> Menu<T>::getHoveredOption() const
 {
 	if (m_options.empty()) {
 		// Empty menu.
@@ -443,7 +442,14 @@ Menu<T>::Menu(ctor_args args)
 		args.pos,
 		args.dim,
 		args.rows,
-		args.cols
+		args.cols,
+		args.outer_margins,
+		args.inner_margins,
+		args.char_sz,
+		args.option_color,
+		args.cursor_color,
+		args.box_color,
+		args.font_file
 	)
 {
 }
@@ -451,37 +457,6 @@ Menu<T>::Menu(ctor_args args)
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-typename Menu<T>::ctor_args 
-Menu<T>::parseXML(const std::string& xmlfile)
-{
-	pugi::xml_document doc;
-	const auto result = doc.load_file(xmlfile.c_str());
-	assert(result.status == pugi::status_ok);
-
-	const auto menu = doc.child("menu");
-	const auto pos = std::make_pair(
-		menu.child("pos").attribute("x").as_float(), 
-		menu.child("pos").attribute("y").as_float()
-	);
-
-	const auto dim = std::make_pair(
-		menu.child("dim").attribute("width").as_float(),
-		menu.child("dim").attribute("height").as_float()
-	);
-
-	const auto rows = menu.child("page").attribute("rows").as_ullong();
-	const auto cols = menu.child("page").attribute("cols").as_ullong();
-	
-	ctor_args args = {
-		pos,
-		dim,
-		rows,
-		cols
-	};
-	return args;
-}
 
 template <typename T>
 void Menu<T>::presetTextPosition(const size_t idx)
@@ -706,6 +681,99 @@ auto Menu<T>::findOption(const T id) -> decltype(m_options.begin())
 	);
 
 	return it;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+typename Menu<T>::ctor_args 
+Menu<T>::parseXML(const std::string& xmlfile)
+{
+	// Load XML document.
+	pugi::xml_document doc;
+	const auto result = doc.load_file(xmlfile.c_str());
+	assert(result.status == pugi::status_ok);
+
+	// Populate constructor arguments struct
+	ctor_args args;
+	const auto menu = doc.child("menu");
+
+	const auto pos = menu.child("pos");
+	args.pos = {
+		pos.attribute("x").as_float(), 
+		pos.attribute("y").as_float()
+	};
+
+	const auto dim = menu.child("dim");
+	args.dim = {
+		dim.attribute("width").as_float(),
+		dim.attribute("height").as_float()
+	};
+
+	const auto margins = menu.child("margins");
+	args.outer_margins = args.getXMLMargins(margins.child("outer"));
+
+	args.inner_margins = args.getXMLMargins(margins.child("inner"));
+
+	const auto options = menu.child("options");
+	const auto view = options.child("view");
+	args.rows = view.attribute("rows").as_ullong();
+	args.cols = view.attribute("cols").as_ullong();
+
+	args.char_sz = options.child("char").attribute("size").as_ullong();
+
+	args.option_color = {
+		args.getXMLColor(options.child("text")),
+		args.getXMLColor(options.child("backgnd")),
+		args.getXMLColor(options.child("border"))
+	};
+
+	const auto cursor = menu.child("cursor");
+	args.cursor_color = {
+		args.getXMLColor(cursor.child("text")),
+		args.getXMLColor(cursor.child("backgnd")),
+		args.getXMLColor(cursor.child("border"))
+	};
+
+	const auto box = menu.child("box");
+
+	args.box_color = {
+		args.getXMLColor(box.child("backgnd")),
+		args.getXMLColor(box.child("border"))
+	};
+
+	const auto font = menu.child("font");
+	args.font_file = font.attribute("path").as_string();
+	
+	return args;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+sf::Color 
+Menu<T>::ctor_args::getXMLColor(const pugi::xml_node& color)
+{
+	return {
+		static_cast<sf::Uint8>(color.attribute("red").as_uint()),
+		static_cast<sf::Uint8>(color.attribute("green").as_uint()),
+		static_cast<sf::Uint8>(color.attribute("blue").as_uint())
+	};
+}
+
+
+template <typename T>
+typename Menu<T>::float2 
+Menu<T>::ctor_args::getXMLMargins(const pugi::xml_node& margins)
+{
+	return {
+		margins.attribute("hz").as_float(),
+		margins.attribute("vt").as_float(),
+	};
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -5,6 +5,7 @@
 #include <utility>
 #include <optional>
 #include <SFML/Graphics.hpp>
+#include <pugixml.hpp>
 
 namespace fe
 {
@@ -49,14 +50,26 @@ public:
 	 * 	2. \a rows or \a cols is 0.
 	 * 	3. a font file cannot be found at \var font_file.
 	 * 
-	 * \param pos			Starting xy-coordinate in the render window.
+	 * \param pos			Starting position in the render window, in this order:
+	 * 							1. X-coordinate.
+	 * 							2. Y-coordinate.
 	 * \param dim			Overall size. This doesn't include the page number that 
 	 * 						may be added directly below the menu.
+	 * 							1. Width.
+	 * 							2. Height.
 	 * \param rows			Maximum rows of menu options per page.
 	 * \param cols			Maximum columns of menu options per page.
 	 * 
 	 * [Optional parameters]
 	 * 
+	 * \param outer_margins		Margins between the sides of the menu and of the 
+	 * 								outer menu options, in this order:
+	 * 									1. horizontal margins.
+	 * 									2. vertical margins.
+	 * \param inner_margins		Margins between each menu option, in this order:
+	 * 									1. horizontal margins.
+	 * 									2. vertical margins.
+	 * \param char_sz				Character size of each menu option's text.
 	 * \param option_color		Colors of each menu option, in this order:
 	 * 									1. text color.
 	 * 									2. background color. 
@@ -68,15 +81,7 @@ public:
 	 * \param box_color			Colors of the menu's box, in this order:
 	 * 									1. background color.
 	 * 									2. border color.
-	 * \param outer_margins		Margins between the sides of the menu and of the 
-	 * 								outer menu options, in this order:
-	 * 									1. horizontal margins.
-	 * 									2. vertical margins.
-	 * \param inner_margins		Margins between each menu option, in this order:
-	 * 									1. horizontal margins.
-	 * 									2. vertical margins.
 	 * \param font_file			Font's filepath.
-	 * \param char_sz				Character size of each menu option's text.
 	 */
 	Menu(
 		const float2 pos,
@@ -84,14 +89,15 @@ public:
 		const size_t rows, 
 		const size_t cols, 
 
+		const float2 outer_margins = {10.f, 10.f},
+		const float2 inner_margins = {10.f, 10.f},
+		const size_t char_sz = 20,
+
 		const sf_color3 option_color = {{43,7,0}, {249,231,228}, {229,197,191}},
 		const sf_color3 cursor_color = {{244,50,116}, {250,250,250}, {229,197,191}},
 		const sf_color2 box_color = {{251,245,240}, {243,200,214}},
 		
-		const float2 outer_margins = {10.f, 10.f},
-		const float2 inner_margins = {10.f, 10.f},
-		const std::string font_file = "font/Montserrat/Montserrat-Regular.ttf",
-		const size_t char_sz = 20
+		const std::string font_file = "font/Montserrat/Montserrat-Regular.ttf"
 	);
 
 	/**
@@ -217,22 +223,51 @@ public:
 	 * \return The ID of the menu option that the cursor is on, or nothing 
 	 * if the menu is empty.
 	 */
-	std::optional<T> getHoveredOption() const noexcept;
+	std::optional<T> getHoveredOption() const;
 
 private:
 	/////////////////////////////////////////////////////////
 	// Additional types
 	/////////////////////////////////////////////////////////
 	/**
-	 * \brief Structure containing all the arguments needed to construct a Menu
-	 * object, based on the parameters of the first constructor. The second 
-	 * constructor creates one from reading the XML file
+	 * \brief Struct containing all the arguments needed to construct a Menu
+	 * object, listed in order of the parameters of the first constructor. The 
+	 * second constructor creates one from reading the XML file.
 	 */
 	using ctor_args = struct ctor_args {
 		float2 pos;
 		float2 dim;
 		size_t rows;
 		size_t cols;
+		float2 outer_margins;
+		float2 inner_margins;
+		size_t char_sz;
+		sf_color3 option_color;
+		sf_color3 cursor_color;
+		sf_color2 box_color;
+		std::string font_file;
+	
+		/**
+		 * \brief Extract the color from an XML element that contains RGB 
+		 * attributes.
+		 * 
+		 * \param color 		An XML element node containing attributes named 
+		 * 						"red", "green", and "blue", each paired with a value.
+		 * 
+		 * \return An SFML Color object
+		 */
+		sf::Color getXMLColor(const pugi::xml_node& color);
+
+		/**
+		 * \brief Extract the horizontal and vertical margins from an XML that
+		 * contains these attributes.
+		 * 
+		 * \param margins 	An XML element node containing attributes named 
+		 * 						"hz" and "vt", each paired with a value.
+		 * 
+		 * \return Horizontal and vertical margins, in that order.
+		 */
+		float2 getXMLMargins(const pugi::xml_node& margins);
 	};
 
 	/**
@@ -325,21 +360,6 @@ private:
 	 * menu specifications.
 	 */
 	Menu(ctor_args args);
-
-	/**
-	 * \brief Parse an XML file that contains arguments for constructing a Menu 
-	 * object.
-	 * 
-	 * This method works in tandem with the private constructor to implement the 
-	 * second public constructor, which takes in an XML file.
-	 * 
-	 * It generates an assertion error if the XML parsing fails for any 
-	 * reason.
-	 * 
-	 * \return Struct containing arguments needed by the first public 
-	 * constructor.
-	 */
-	ctor_args parseXML(const std::string& xmlfile);
 
 	/**
 	 * \brief Set where a menu option's text should be drawn on the render 
@@ -438,6 +458,21 @@ private:
 	 * \var m_options.end() is returned.
 	 */
 	auto findOption(const T id) -> decltype(m_options.begin());
+
+	/**
+	 * \brief Parse an XML file that contains arguments for constructing a Menu 
+	 * object.
+	 * 
+	 * This method works in tandem with the private constructor to implement the 
+	 * second public constructor, which takes in an XML file.
+	 * 
+	 * It generates an assertion error if the XML parsing fails for any 
+	 * reason.
+	 * 
+	 * \return Struct containing arguments needed by the first public 
+	 * constructor.
+	 */
+	ctor_args parseXML(const std::string& xmlfile);
 };
 
 }
