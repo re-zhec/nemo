@@ -2,7 +2,7 @@
 #include <string>
 #include <ostream>
 
-namespace fe
+namespace rp
 {
 /**
  * Enumeration of item IDs
@@ -99,7 +99,7 @@ public:
 	 * If this item already belongs to an owner i.e. the owner ID isn't 
 	 * CharID::None, then assigning a new owner to it will fail. In order to 
 	 * change ownership, \property SetOwner must be called twice, once with \var 
-	 * fe::CharID::None and again with the new owner's ID.
+	 * rp::CharID::None and again with the new owner's ID.
 	 * 
 	 * \return True if the weapon's owner is successfully set to the battle 
 	 * unit's ID; false otherwise.

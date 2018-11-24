@@ -2,7 +2,7 @@
 #include "../include/Menu.hpp"
 #include "../include/StartScreen.hpp"
 
-namespace fe
+namespace rp
 {
 
 StartScreen::StartScreen()

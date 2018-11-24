@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fe
+namespace rp
 {
 
 enum class GameState {

@@ -8,7 +8,7 @@
 // Include headers containing scoped enum types here
 #include "../include/StartScreen.hpp"
 
-namespace fe
+namespace rp
 {
 
 template class Menu<StartScreen::MainMenuKey>;

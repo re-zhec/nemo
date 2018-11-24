@@ -7,7 +7,7 @@
 #include <SFML/Graphics.hpp>
 #include <pugixml.hpp>
 
-namespace fe
+namespace rp
 {
 
 /**

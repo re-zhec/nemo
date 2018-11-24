@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "../include/Menu.hpp"
 
-namespace fe
+namespace rp
 {
 
 class StartScreen

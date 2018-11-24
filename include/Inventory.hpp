@@ -4,7 +4,7 @@
 #include <memory>
 #include "Item.hpp"
 
-namespace fe
+namespace rp
 {
 
 /**
@@ -57,7 +57,7 @@ public:
 	 * isn't in the inventory. It also generates an assert error if the selected 
 	 * index is beyond the size of the container in which all duplicates of the
 	 * same items are stored. In other words, if the inventory has only 3 
-	 * Elfires, RemoveOne(fe::WeapID::Elfire, 5) will fail because index 5 is 
+	 * Elfires, RemoveOne(rp::WeapID::Elfire, 5) will fail because index 5 is 
 	 * out of bound.
 	 * 
 	 * \param id		Item's ID

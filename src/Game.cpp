@@ -1,6 +1,6 @@
 #include "../include/Game.hpp"
 
-namespace fe
+namespace rp
 {
 
 Game::Game()

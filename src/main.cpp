@@ -15,8 +15,8 @@ int main()
 	window.setKeyRepeatEnabled(false);
 	LOG_DEBUG("Window opened");
 
-	fe::GameState state;
-	fe::StartScreen start;
+	rp::GameState state;
+	rp::StartScreen start;
 
 	// run the program as long as window is opened
 	while (window.isOpen())
@@ -48,18 +48,18 @@ int main()
 			else {
 				switch (state)
 				{
-					case fe::GameState::Start:
+					case rp::GameState::Start:
 						start.Refresh(window, event);
 						if (start.IsFileLoaded()) {
-							state = fe::GameState::WorldMap;
+							state = rp::GameState::WorldMap;
 						}
 						break;
 
-					case fe::GameState::WorldMap:
+					case rp::GameState::WorldMap:
 						window.close();
 						break;
 
-					case fe::GameState::LoadSave:
+					case rp::GameState::LoadSave:
 						break;
 
 					default:

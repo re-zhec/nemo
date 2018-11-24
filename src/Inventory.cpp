@@ -4,7 +4,7 @@
 #include "../include/Inventory.hpp"
 #include "../include/Item.hpp"
 
-namespace fe
+namespace rp
 {
 
 Inventory::Inventory()

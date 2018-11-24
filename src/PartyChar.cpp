@@ -4,7 +4,7 @@
 #include "../include/PartyChar.hpp"
 #include "../include/Weapon.hpp"
 
-namespace fe
+namespace rp
 {
 
 PartyChar::PartyChar(CharID id)

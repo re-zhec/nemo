@@ -3,7 +3,7 @@
 #include "../include/logger.hpp"
 #include "../include/Menu.hpp"
 
-namespace fe
+namespace rp
 {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -312,9 +312,8 @@ bool Menu<T>::empty() const noexcept
 template <typename T>
 void Menu<T>::moveUp()
 {
-	if ([[maybe_unused]] const auto [last_r, UNUSED_] = translateToRowColumn(
-			m_options.size() - 1, m_cols
-		);
+	if ([[maybe_unused]] const auto 
+		[last_r, UNUSED_] = translateToRowColumn(m_options.size() - 1, m_cols);
 		last_r == 0) 
 	{
 		// Up => left in a horizontal menu, which can be determined based on 
@@ -333,9 +332,8 @@ void Menu<T>::moveUp()
 template <typename T>
 void Menu<T>::moveDown()
 {
-	if ([[maybe_unused]] const auto [last_r, UNUSED_] = translateToRowColumn(
-			m_options.size() - 1, m_cols
-		);
+	if ([[maybe_unused]] const auto 
+		[last_r, UNUSED_] = translateToRowColumn(m_options.size() - 1, m_cols);
 		last_r == 0)
 	{
 		// Down => right in a horizontal menu.
@@ -576,8 +574,8 @@ void Menu<T>::drawOption(const size_t idx, sf::RenderWindow& window)
 {
 	assert(idx < m_options.size());
 
-	// Although we can have pages of menu options, we have only a page worth of 
-	// cells to use to save memory. So grab the one the menu option would be
+	// Although we can have pages of menu options, to save memory, we have only a 
+	// page worth of cells to use. So, grab the one the menu option would be
 	// drawn on.
 	auto& cell = m_cells[idx % m_cells.size()];
 
@@ -628,7 +626,7 @@ void Menu<T>::drawPageRef(sf::RenderWindow& window) const
 	[[maybe_unused]] const auto [txt_color, UNUSED1_, UNUSED2_] = m_option_color;
 
 	// Draw the page numbers on the right half of the box.
-	const auto atpage_txt_height = atpage_box_height - 9.f;
+	constexpr auto atpage_txt_height = atpage_box_height - 9.f;
 	sf::Text atpage(atpage_txt, m_font, atpage_txt_height);
 	atpage.setOrigin(0.f, -2.f);
 	atpage.setFillColor(txt_color);
@@ -642,11 +640,11 @@ void Menu<T>::drawPageRef(sf::RenderWindow& window) const
 	if (npages > 1) {
 		// Draw the navigation arrow indicators on the left half of the box.
 		// Up arrow.
-		const auto arrow_sz = atpage_box_height - 7.f;
-		const auto arrow_radius = .5f * arrow_sz;
-		const auto arrow_padding = .5f * arrow_radius;
+		constexpr auto arrow_sz = atpage_box_height - 7.f;
+		constexpr auto arrow_radius = .5f * arrow_sz;
+		constexpr auto arrow_padding = .5f * arrow_radius;
+		
 		sf::CircleShape up(arrow_radius, 3);
-
 		up.setFillColor(txt_color);
 		up.setOrigin(-arrow_padding, -arrow_padding);
 		up.setPosition(
@@ -697,7 +695,7 @@ Menu<T>::parseXML(const std::string& xmlfile)
 	assert(result.status == pugi::status_ok);
 
 	// Populate constructor arguments struct
-	ctor_args args;
+	ctor_args args = {};
 	const auto menu = doc.child("menu");
 
 	const auto pos = menu.child("pos");

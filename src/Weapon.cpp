@@ -7,7 +7,7 @@
 #define COMBAT_CLOSE_RANGED	{1, 2}
 #define COMBAT_RANGED_ONLY		{2, 2}
 
-namespace fe
+namespace rp
 {
 
 Weapon::Weapon(ItemID id)

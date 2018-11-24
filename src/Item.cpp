@@ -2,7 +2,7 @@
 #include "../include/Item.hpp"
 #include "../include/PartyChar.hpp"
 
-namespace fe
+namespace rp
 {
 
 Item::Item(ItemID id)
