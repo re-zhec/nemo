@@ -111,7 +111,7 @@ Menu<T>::Menu(
 	// Create the menu box.
 	const auto [x, y] = m_pos;
 	const auto [width, height] = m_dim;
-	const auto& [box_back_color, box_bord_color] = box_color;
+	const auto [box_back_color, box_bord_color] = box_color;
 
 	m_box.setSize({width, height});
 	m_box.setFillColor(box_back_color);
