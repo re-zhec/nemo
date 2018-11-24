@@ -6,9 +6,9 @@ namespace fe
 {
 
 StartScreen::StartScreen()
-	: m_main_menu({40.f, 40.f}, 600.f, 150.f, 2, 4)
-	, m_file_menu({40.f, 40.f}, 200.f, 600.f, 1, 4)
-	, m_cfg_menu({0.f, 0.f}, 1280.f, 720.f, 4, 8)
+	: m_main_menu({40.f, 40.f}, {600.f, 150.f}, 2, 4)
+	, m_file_menu({40.f, 40.f}, {200.f, 600.f}, 1, 4)
+	, m_cfg_menu({0.f, 0.f}, {1280.f, 720.f}, 4, 8)
 	, m_file(0)
 {
 	m_main_menu.addOption(MainMenuKey::Play, "Play");
@@ -77,6 +77,10 @@ void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)
 							case MainMenuKey::Quit:
 								window.close();
 								break;
+							
+							default:
+								m_main_menu.delOption(*selected);
+								break;
 						}
 					}
 						
@@ -92,6 +96,9 @@ void StartScreen::Refresh(sf::RenderWindow& window, sf::Event& event)
 			break;
 	}
 
+	sf::RectangleShape screen({1280.f, 720.f});
+	screen.setFillColor(sf::Color::White);
+	window.draw(screen);
 	m_main_menu.draw(window);
 }
 

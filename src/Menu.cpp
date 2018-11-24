@@ -12,39 +12,39 @@ namespace fe
 
 namespace {
 	/**
-	 * \brief For data that is represented as a 2D matrix but is actually 1-D and 
-	 * contiguous, this function converts the row and column coordinate to its 
-	 * 1-D counterpart
+	 * \brief For data that is represented as a 2D matrix but is actually 1-D, 
+	 * this function converts the row and column coordinate to its 1-D 
+	 * counterpart.
 	 * 
-	 * This function is used to get the index of a particular menu option, as 
-	 * they are stored in a single vector despite being displayed as a 2D matrix
+	 * The row and column indices are expected to be 0-based.
+	 * 
+	 * This function is used to get the index of a particular menu option. All  
+	 * menu options are stored in a vector being displayed as a 2D matrix on the 
+	 * render window.
 	 *
-	 * \param r			Row number
-	 * \param c			Column number
-	 * \param ncols	Number of columns per row
+	 * \param r			Row index.
+	 * \param c			Column index.
+	 * \param ncols	Number of columns per row.
 	 * 
-	 * \return 1-D index for array, vector, etc.
+	 * \return 0-based 1-D index..
 	 */
 	inline decltype(auto) 
 	translateTo1DIndex(const size_t r, const size_t c, const size_t ncols)
 	noexcept
 	{
-		// Indices are numbered from left to right, going downward
+		// Indices are numbered from left to right, down across rows.
 		return r * ncols + c;
 	}
 
 	/**
-	 * \brief For data that is represented as a 2D matrix but is actually 1-D and 
-	 * contiguous, this function converts the row and column coordinate to its 
-	 * 1-D counterpart
-	 * 
-	 * This method is a wrapper for the method above, which takes the split row 
-	 * and column number as input instead of the pair
+	 * \brief This function is a wrapper for the overloaded one above. Instead 
+	 * of two parameters for the row and column indices, this method takes them 
+	 * one parameter, a pair.
 	 *
-	 * \param rc		Row and column coordinate
-	 * \param ncols	Number of columns per row
+	 * \param rc		Row and column indices.
+	 * \param ncols	Number of columns per row.
 	 * 
-	 * \return 1-D index for array, vector, etc.
+	 * \return 0-based 1-D index.
 	 */
 	inline decltype(auto) 
 	translateTo1DIndex(const std::pair<size_t, size_t> rc, const size_t ncols)
@@ -56,12 +56,12 @@ namespace {
 
 	/**
 	 * \brief This function does the opposite of \property translateTo1DIndex. 
-	 * It converts an 1-D index to a corresponding row and column coordinate
+	 * It converts an 1-D index to the corresponding row and column indices.
 	 *
-	 * \param idx		1-D index for array, vector, etc.
-	 * \param ncols	Number of columns per row
+	 * \param idx		0-based 1-D index.
+	 * \param ncols	Number of columns per row.
 	 * 
-	 * \return Row and column coordinate
+	 * \return Row and column indices.
 	 */
 	inline decltype(auto)
 	translateToRowColumn(const size_t idx, const size_t ncols) 
@@ -78,96 +78,92 @@ namespace {
 template <typename T> 
 Menu<T>::Menu(
 	const std::pair<float, float> xy,
-	const float width,
-	const float height,
+	const std::pair<float, float> dim,
 	const size_t rows, 
-	const size_t cols, 
-	const size_t char_sz, 
-	const sf::Color txt_color,
-	const sf::Color cursor_color,
-	const std::pair<sf::Color, sf::Color> cell_color,
-	const std::pair<sf::Color, sf::Color> backgd_color
+	const size_t cols,
+
+	const std::tuple<sf::Color, sf::Color, sf::Color> option_color,
+	const std::tuple<sf::Color, sf::Color, sf::Color> cursor_color,
+	const std::pair<sf::Color, sf::Color> box_color,
+	const std::pair<float, float> outer_margins,
+	const std::pair<float, float> inner_margins,
+	const std::string font_file,
+	const size_t char_sz
 )	
-	: m_x(xy.first)
-	, m_y(xy.second)
-	, m_width(width)
-	, m_height(height)
+	: m_xy(xy)
+	, m_dim(dim)
+	, m_page_margins(outer_margins)
 	, m_rows(rows)
 	, m_cols(cols)
-	, m_char_sz(char_sz)
-
-	// Menu options' width and height are scaled based on the menu's overall 
-	// dimensions and the number of rows and columns of options to fit in at a 
-	// time
-	, m_option_width((width - .5f * char_sz) / cols)
-	, m_option_height((height - 1.55f * char_sz) / rows)
-	
-	, m_option_color(txt_color)
+	, m_option_color(option_color)
 	, m_cursor_color(cursor_color)
-
-	// Create rectangular box for the menu's background
-	, m_backgd(sf::Vector2f(width, height))
+	, m_char_sz(char_sz)	
 {
-	assert(m_x >= 0.f);
-	assert(m_y >= 0.f);
-	assert(m_width >= 0.f);
-	assert(m_height >= 0.f);
+	assert(m_xy >= std::make_pair(0.f, 0.f));
+	assert(m_dim >= std::make_pair(0.f, 0.f));
 	assert(m_rows > 0);
 	assert(m_cols > 0);
 
-	// Load font from file
-	const auto success = m_font.loadFromFile(
-		"font/Montserrat/Montserrat-Regular.ttf"
-	);
-
+	// Load the font file.
+	const auto success = m_font.loadFromFile(font_file);
 	assert(success);
 
+	// Create the menu box.
+	const auto [x, y] = m_xy;
+	const auto [width, height] = m_dim;
+	const auto& [box_back_color, box_bord_color] = box_color;
+
+	m_box.setSize({width, height});
+	m_box.setFillColor(box_back_color);
+	m_box.setOutlineColor(box_bord_color);
+	m_box.setOutlineThickness(-1.f);
+	m_box.setPosition(x, y);
+
+	// The area of the menu inside the margins are reserved for menu options. 
+	// From there, the number of rows and columns of options determine each 
+	// option's width and height. For now, inner margins are included in the 
+	// width and height.
+	const auto [hzmargin, vtmargin] = m_page_margins;
+	const auto option_width = (width - 2.f * hzmargin) / m_cols;
+	const auto option_height = (height - 2.f * vtmargin) / m_rows;
+
 	// Reserve some number of options to ease the number of forced memory 
-	// reallocations
-	const auto noptions_per_page = rows * cols;
+	// reallocations.
+	const auto noptions_per_page = m_rows * m_cols;
 	m_options.reserve(noptions_per_page);
 	
-	// Create background cells for one page full of menu options. Only one page
-	// is needed since the options outside of them won't be drawn.
+	// Create background cells to contain the menu options in one page. To save 
+	// memory, only one page worth is needed since the options outside of them 
+	// won't be drawn on screen. We can keep track of what the color of a cell 
+	// should be based on the contained option's metadata.
 	m_cells.reserve(noptions_per_page);
 
-	for (auto i = 0U; i < noptions_per_page; ++i) {
-		// Tweak cell size so that margins can be inserted between them
-		const auto margin_width = .05f * m_option_width;
-		const auto margin_height = .1f * m_option_height;
+	for (auto i = 0u; i < noptions_per_page; ++i) {
+		// Adjust cell cize so that inner margins can be inserted between them.
+		const auto [inner_hzmargin, inner_vtmargin] = inner_margins;
 		
 		sf::RectangleShape cell({
-			m_option_width - margin_width, 
-			m_option_height - margin_height
+			option_width - 2.f * inner_hzmargin, 
+			option_height - 2.f * inner_vtmargin
 		});
 
-		// Cell colors
-		const auto& [cell_fill, cell_oline] = cell_color;
-		cell.setFillColor(cell_fill);
-		cell.setOutlineColor(cell_oline);
-		cell.setOutlineThickness(1.f);
+		// Insert inner margins.
+		cell.setOrigin(-inner_hzmargin, -inner_vtmargin);
 
-		// To insert margins between cells
-		cell.setOrigin(-margin_width, -margin_height);
-
-		// Position cells from left to right, downward across rows
+		// Place the cell in the appropriate spot in the menu. Cells line up from 
+		// left to right, down across rows.
 		const auto [r_i, c_i] = translateToRowColumn(i, m_cols);
 		cell.setPosition(
-			m_x + m_option_width * c_i, 
-			m_y + m_option_height * r_i
+			x + hzmargin + option_width * c_i, 
+			y + vtmargin + option_height * r_i
 		);
 
+		// The coloring of the cells is decided in drawOption() since they can 
+		// change depending on whether a cursor is over one or if the client 
+		// requests a specific menu option to be colored differently.
+		cell.setOutlineThickness(1.f);
 		m_cells.push_back(cell);
 	}
-
-	// Color for the entire menu background
-	const auto& [backgd_fill, backgd_oline] = backgd_color;
-	m_backgd.setFillColor(backgd_fill);
-	m_backgd.setOutlineColor(backgd_oline);
-	m_backgd.setOutlineThickness(-2.f);
-
-	// Starting position of the menu
-	m_backgd.setPosition(m_x, m_y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -177,30 +173,28 @@ Menu<T>::Menu(
 template <typename T>
 void Menu<T>::addOption(const T id, const std::string& txt)
 {
-	// Make sure there's no other menu options with the new ID
+	// Make sure there is no other menu option that has the new ID.
 	const auto it = findOption(id);
 	assert(it == m_options.cend());
 
-	// Create graphical text
+	// Create the option's graphical text.
 	sf::Text option(txt, m_font, m_char_sz);
+	
+	// Add the option to the menu.
+	m_options.push_back({id, option, m_option_color});
+	const auto idx = m_options.size() - 1;
 
-	if (m_options.empty()) {
-		// Selection cursor is on the first option by default
-		option.setFillColor(m_cursor_color);
-		m_sel_rc = {0, 0};
-	}
-	else {
-		option.setFillColor(m_option_color);
+	if (idx == 0) {
+		// The cursor starts on the first option by default.
+		m_cursor_rc = translateToRowColumn(idx, m_cols);		
+		setOptionColor(idx, m_cursor_color);
 	}
 
-	// Add the option to the menu
-	m_options.push_back({id, option});
+	// Preset the option text's position on the menu for future rendering. Since 
+	// it was just added to menu, we can use the index of the last element in the
+	// menu option container.
+	presetTextPosition(idx);
 	LOG_DEBUG("Added menu option {" << id << "," << txt << "}");
-
-	// Preset its window position on the menu for future rendering. Since it was 
-	// just added to menu, use the index of the last element in the menu option 
-	// container
-	presetOptionPosition(m_options.size() - 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -220,48 +214,48 @@ bool Menu<T>::empty() const noexcept
 template <typename T>
 void Menu<T>::delOption(const T id)
 {
-	// Search for the option
+	// Search for the option.
 	auto it = findOption(id);
 	assert(it != m_options.cend());
 
-	// Delete it
+	// Delete it.
 	it = m_options.erase(it);
 	const auto rm_idx = static_cast<decltype(m_options.size())>(
 		it - m_options.cbegin());
 
 	// Ignore the rest of the method if that removed option was the only one 
 	// left on the menu. The cursor will correct itself once another option is 
-	// added
+	// added.
 	if (m_options.empty()) {
 		return;
 	}
 
-	// The highlight cursor needs to be readjusted if it was on or after the 
-	// option that was removed
-	if (auto cur_idx = translateTo1DIndex(m_sel_rc, m_cols);
+	// All options that followed the removed one need to have their text's render 
+	// positions shifted frontward one slot
+	for (auto i = rm_idx; i < m_options.size(); ++i) {
+		presetTextPosition(i);
+	}
+
+	// The cursor needs to be refocused if it was on or after the option that was
+	// removed.
+	if (auto cur_idx = translateTo1DIndex(m_cursor_rc, m_cols);
 		cur_idx >= rm_idx)
 	{
-		// Move the cursor back if it was on the last option when that was 
-		// removed. There is nothing left at its current coordinate
+		// Move the cursor frontward if it was on the last option when that was 
+		// removed, as the cursor is hovering over nothing there.
 		if (cur_idx == m_options.size()) {
-			// Since there's nothing there, none of the other menu movement methods
-			// can be called because they change the color of the option  the 
-			// cursor was on. The cursor's coordinates need to be manually changed 
-			// to the preceding menu option's
+			// None of the other menu movement methods (moveUp(), moveDown(), etc.) 
+			// can be called because they change the colors of the option the 
+			// cursor was over, and there's nothing there. The cursor's position 
+			// need to be manually changed to the preceding menu option's.
 			--cur_idx;
-			m_sel_rc = translateToRowColumn(cur_idx, m_cols);
+			m_cursor_rc = translateToRowColumn(cur_idx, m_cols);
 		}
 		
 		// Otherwise, the cursor would just be pointing at the option following 
-		// the removed one. Either way, The option still has the nonselected 
-		// color, so change that
+		// the removed one. Either way, The option still has the non-cursor
+		// colors, so change that.
 		setOptionColor(cur_idx, m_cursor_color);
-	}
-
-	// All options that followed the removed one need to have their render 
-	// positions shifted forward one slot
-	for (auto i = rm_idx; i < m_options.size(); ++i) {
-		presetOptionPosition(i);
 	}
 }
 
@@ -272,12 +266,12 @@ void Menu<T>::delOption(const T id)
 template <typename T>
 void Menu<T>::setOptionText(const T id, const std::string& txt)
 {
-	// Search for the option
+	// Search for the option.
 	const auto it = findOption(id);
 	assert(it != m_options.cend());
-	[[maybe_unused]] auto& [UNUSED_, cur_txt] = *it;
+	[[maybe_unused]] auto& [UNUSED0_, cur_txt, UNUSED2_] = *it;
 
-	// Change to new text
+	// Change to new text.
 	cur_txt.setString(txt);
 }
 
@@ -286,13 +280,13 @@ void Menu<T>::setOptionText(const T id, const std::string& txt)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::setOptionColor(const T id, const sf::Color color)
+void Menu<T>::setOptionColor(const T id, const sf_color3 color)
 {
-	// Search for the option
+	// Search for the option.
 	const auto it = findOption(id);
 	assert(it != m_options.cend());
 
-	// Change its color
+	// Change its colors.
 	setOptionColor(it - m_options.cbegin(), color);
 }
 
@@ -304,12 +298,12 @@ template <typename T>
 std::optional<T> Menu<T>::getHoveredOption() const noexcept
 {
 	if (m_options.empty()) {
-		// Empty menu
+		// Empty menu.
 		return {};
 	}
 
-	const auto idx = translateTo1DIndex(m_sel_rc, m_cols);
-	[[maybe_unused]] const auto& [id, UNUSED_] = m_options[idx];
+	const auto idx = translateTo1DIndex(m_cursor_rc, m_cols);
+	[[maybe_unused]] const auto& [id, UNUSED1_, UNUSED2_] = m_options[idx];
 	return std::make_optional(id);
 }
 
@@ -326,7 +320,7 @@ void Menu<T>::moveUp()
 		last_r == 0) 
 	{
 		// Up => left in a horizontal menu, which can be determined based on 
-		// whether last menu option is on the first row
+		// whether last menu option is on the first row.
 		move(Direction::Left);
 	}
 	else {
@@ -346,8 +340,7 @@ void Menu<T>::moveDown()
 		);
 		last_r == 0)
 	{
-		// Down => right in a horizontal menu, which can be determined based on 
-		// whether last menu option is on the first row
+		// Down => right in a horizontal menu.
 		move(Direction::Right);
 	} 
 	else {
@@ -363,7 +356,9 @@ template <typename T>
 void Menu<T>::moveRight()
 {
 	if (m_cols == 1) {
-		// Right => down in a vertical menu
+		// Right => down in a vertical menu. The number of columns is always 
+		// capped at the number of columns per page, unlike the number of rows in 
+		// moveUp() and moveDown()'s cases.
 		move(Direction::Down);
 	} 
 	else {
@@ -379,7 +374,7 @@ template <typename T>
 void Menu<T>::moveLeft()
 {
 	if (m_cols == 1) {
-		// Left => up in a vertical menu
+		// Left => up in a vertical menu.
 		move(Direction::Up);
 	} 
 	else {
@@ -392,103 +387,67 @@ void Menu<T>::moveLeft()
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::draw(sf::RenderWindow& window) const
+void Menu<T>::draw(sf::RenderWindow& window)
 {
-	// Draw background
-	window.draw(m_backgd);
+	// Draw the menu box.
+	window.draw(m_box);
 
-	// Drawing the menu options...
-
-	// The entire list isn't going to be drawned into the render window. Only the 
-	// "page" that has the menu option the highlight cursor is on needs to be. A
-	// page is the number of menu options that can be displayed at once based on
-	// the specified number of rows and columns in the menu's construction
-	const auto page_sz = m_rows * m_cols;
-	const auto idx = translateTo1DIndex(m_sel_rc, m_cols);
+	// The entire container of options isn't going to be drawned on screen. Only 
+	// the page of options where the cursor is needs to be.
+	const auto page_sz = m_cells.size();
+	const auto idx = translateTo1DIndex(m_cursor_rc, m_cols);
 	const auto cur_page = idx / page_sz;
 
-	// Find the first and last menu option that would appear in the highlighed 
-	// option's frame. In the case of this frame being the last one, it doesn't 
-	// necessarily have all the rows and columns filled, so cap at the last 
-	// option index
+	// Draw from the first to the last option from that page. In case that page 
+	// happens to be the last one, since the page doesn't necessarily have all 
+	// its rows and columns filled, be sure to stop after the very last option.
 	const auto start = cur_page * page_sz;
 	const auto n = m_options.size();
 	const auto end = std::min(start + page_sz, n);
 
-	// Draw the options
 	for (auto i = start; i < end; ++i) {
-		window.draw(m_cells[i - start]);
-		[[maybe_unused]] const auto& [UNUSED_, txt] = m_options[i];
-		window.draw(txt);
+		drawOption(i, window);
 	}
 
-	if (const auto npages = (n - 1) / page_sz + 1;
-		npages > 1) 
-	{
-		// Draw the current page number out of the total so that the player knows 
-		// where they are
-		const auto page_txt = std::to_string(cur_page + 1) + "/" + 
-			std::to_string(npages);		
-		const auto page_txt_sz = page_txt.length() * m_char_sz;
-		const auto page_char_sz = .9f * m_char_sz;
-		
-		// Place them at the bottom right of the displayable portion of the menu
-		const auto botright_x = m_x + m_width - page_txt_sz;
-		const auto botright_y = m_y + m_height - page_char_sz;
-
-		sf::Text page_mark(page_txt, m_font, page_char_sz);
-		page_mark.setFillColor(m_option_color);
-		page_mark.setOrigin(0.f, .45f * m_char_sz);
-		page_mark.setPosition(botright_x, botright_y);
-
-		// Draw scroll arrows
-		const auto radius = .5f * page_char_sz;
-
-		// Up arrow
-		sf::CircleShape up(radius, 3);
-		up.setFillColor(m_option_color);
-		up.setOrigin(radius / 2.f, radius / 2.f);
-		up.setPosition(botright_x - 3.25f * page_char_sz, botright_y);
-		
-		// Down arrow
-		sf::CircleShape down(up);
-		down.scale(1.f, -1.f);
-		down.setPosition(
-			botright_x - 2.f * page_char_sz, 
-			botright_y + radius / 2.f
-		);
-
-		window.draw(page_mark);
-		window.draw(up);
-		window.draw(down);
+	if (n > page_sz) {
+		// If the options fill up the menu past one page, draw the current page 
+		// number out of the total so that the player would know where they are. 
+		// Draw the navigation arrow indicators as well.
+		drawPageRef(window);
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
+// std::pair<float, float> getSize() const noexcept
+// {
+// 	const auto width = 
+// }
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::presetOptionPosition(const size_t idx)
+void Menu<T>::presetTextPosition(const size_t idx)
 {
 	assert(idx < m_options.size());
 
-	[[maybe_unused]] auto& [UNUSED_, txt] = m_options[idx];
-	const auto [r, c] = translateToRowColumn(idx, m_cols);
+	// Menu options are positioned from left to right down across rows. After 
+	// a page is filled, the graphical positions start over from the top left 
+	// for a new page.
+	const auto& cell = m_cells[idx % m_cells.size()];
+	[[maybe_unused]] auto& [UNUSED0_, txt, UNUSED2_] = m_options[idx];
+	txt.setOrigin(cell.getOrigin());
+	txt.setPosition(cell.getPosition());
 
-	// Veritcally align each
-	const auto margin_width = .1f * m_option_width;
-	const auto margin_height = .5f * (m_option_height - m_char_sz);
-	
-	txt.setOrigin(-margin_width, -margin_height);
-
-	// Menu options are positioned from left to right down across rows. For every
-	// "page" of options (maximum number of rows x columns displayable options), 
-	// start over from the top.
-	txt.setPosition(
-		m_x + m_option_width * c,
-		m_y + m_option_height * (r % m_rows)
-	);
+	// Veritcally center and horizontally left-align this option in the cell it
+	// it is placed in.
+	const auto [width, height] = cell.getSize();
+	const auto hzalign = .075f * width;
+	const auto vtalign = .5f * (height - m_char_sz);
+	txt.move(hzalign, vtalign);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -499,37 +458,38 @@ template <typename T>
 void Menu<T>::move(const Direction dir)
 {
 	if (m_options.empty()) {
-		// No menu options => no cursor => no movement
+		// No menu options => no cursor => no movement.
 		return;
 	}
 
-	// Change the current menu option to the non-selected color before moving to
-	// the next option
-	auto& [r, c] = m_sel_rc;
+	// Change the current menu option to the non-cursor colors before going to
+	// the next option.
+	auto& [r, c] = m_cursor_rc;
 	setOptionColor(r, c, m_option_color);
 
 	// Changing the current row or column...
 
-	// The highlight cursor should be able to wrap around the ends of the menu.
-	// Moving left when the cursor is at the leftmost option should take the 
-	// cursor to the rightmost option at the same row, and vice versa. Similarly,
-	// moving up when the cursor is at the topmost option should take the cursor 
-	// to the bottomost option at the same column, and vice versa. The wrapping 
-	// should take into account that the bottomost row may be partially filled.
+	// The cursor should be able to wrap around the ends of the menu. Moving the 
+	// cursor left when it is at the leftmost option should take it to the 
+	// rightmost option at the same row, and vice versa. Similarly, moving it up 
+	// when it is at the topmost option should take it to the bottomost option at 
+	// the same column, and vice versa. The wrapping should take into account 
+	// that the bottomost row may be partially filled, which column the cursor 
+	// can move to in the last row.
 
-	// Get the row and column coordinate of the last option
+	// Get the row and column indices of the last option.
 	const auto [last_r, last_c] = translateToRowColumn(
 		m_options.size() - 1, m_cols
 	);
 
-	// Rightmost column at the current row the cursor is on. Needed for moving 
-	// left and right
+	// Get the rightmost column at the current row the cursor is on. It's needed 
+	// when moving left and right.
 	const auto right_c = r < last_r ? m_cols - 1 : last_c;
 
 	switch (dir) {
 		// Up/down changes the row index.
 		// If the cursor will move to the bottom row but there's no option exactly 
-		// below it, move it to the last option
+		// below it, move it to the last option.
 		case Direction::Up:
 			r = r > 0 ? r - 1 : last_r;
 			c = r < last_r ? c : std::min(c, last_c);
@@ -538,6 +498,7 @@ void Menu<T>::move(const Direction dir)
 			r = r < last_r ? r + 1 : 0;
 			c = r < last_r ? c : std::min(c, last_c);
 			break;
+		
 		// Left/right changes the column index
 		case Direction::Right:
 			c = c < right_c ? c + 1 : 0;
@@ -549,7 +510,7 @@ void Menu<T>::move(const Direction dir)
 			break;
 	}
 
-	// Highlight the menu option the cursor just moved to
+	// Color the menu option the cursor just moved to.
 	setOptionColor(r, c, m_cursor_color);	
 	LOG_DEBUG("New cursor location: (" << r << "," << c << ")");
 }
@@ -559,11 +520,11 @@ void Menu<T>::move(const Direction dir)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::setOptionColor(const size_t idx, const sf::Color color)
+void Menu<T>::setOptionColor(const size_t idx, const sf_color3 color)
 {
 	assert(idx < m_options.size());
-	[[maybe_unused]] auto& [UNUSED_, txt] = m_options[idx];
-	txt.setFillColor(color);
+	[[maybe_unused]] auto& [UNUSED0_, UNUSED1_, cur_color] = m_options[idx];
+	cur_color = color;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -572,10 +533,108 @@ void Menu<T>::setOptionColor(const size_t idx, const sf::Color color)
 
 template <typename T>
 void Menu<T>::setOptionColor(const size_t r, const size_t c, 
-	const sf::Color color)
+	const sf_color3 color)
 {
 	const auto idx = translateTo1DIndex(r, c, m_cols);
 	setOptionColor(idx, color);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void Menu<T>::drawOption(const size_t idx, sf::RenderWindow& window)
+{
+	assert(idx < m_options.size());
+
+	// Although we can have pages of menu options, we have only a page worth of 
+	// cells to use to save memory. So grab the one the menu option would be
+	// drawn on.
+	auto& cell = m_cells[idx % m_cells.size()];
+
+	// Color the text and cell.
+	[[maybe_unused]] auto& [UNUSED_, txt, color] = m_options[idx];
+	const auto [txt_color, back_color, bord_color] = color;
+
+	txt.setFillColor(txt_color);
+	cell.setFillColor(back_color);
+	cell.setOutlineColor(bord_color);
+
+	// Draw the cell first, then the text over it.
+	window.draw(cell);
+	window.draw(txt);
+}
+
+template <typename T>
+void Menu<T>::drawPageRef(sf::RenderWindow& window) const
+{
+	// Get the page number the cursor is on as well as the total number of pages 
+	// of options the menu has.
+	const auto page_sz = m_cells.size();
+	const auto npages = (m_options.size() - 1) / page_sz + 1;
+	const auto cur_page = translateTo1DIndex(m_cursor_rc, m_cols) / page_sz;
+	const auto atpage_txt = std::to_string(cur_page + 1) 
+		+ " / " 
+		+ std::to_string(npages);
+
+	// Draw a small box that will contain the page numbers and navigation arrow
+	// indicators, assuming the menu has more than one page.
+	const auto atpage_box_height = 25.f;			
+	const auto atpage_box_width = static_cast<float>(atpage_txt.length() 
+		* m_char_sz);
+
+	// The box should have the same background layer as the menu box's since it 
+	// will be appended to the menu. 
+	sf::RectangleShape atpage_box({atpage_box_width, atpage_box_height});
+	atpage_box.setFillColor(m_box.getFillColor());
+	atpage_box.setOutlineColor(m_box.getOutlineColor());
+	atpage_box.setOutlineThickness(m_box.getOutlineThickness());
+	
+	// Place it directly below the bottom right corner of the menu.
+	atpage_box.setPosition(m_box.getPosition() + m_box.getSize());
+	atpage_box.move(-atpage_box_width, m_box.getOutlineThickness());
+	window.draw(atpage_box);
+
+	// For the color of the page number and navigation arrow indicators, use the 
+	// cursor's text color
+	[[maybe_unused]] const auto [txt_color, UNUSED1_, UNUSED2_] = m_option_color;
+
+	// Draw the page numbers on the right half of the box.
+	const auto atpage_txt_height = atpage_box_height - 9.f;
+	sf::Text atpage(atpage_txt, m_font, atpage_txt_height);
+	atpage.setOrigin(0.f, -2.f);
+	atpage.setFillColor(txt_color);
+	atpage.setPosition(
+		atpage_box.getPosition() + 
+		sf::Vector2f(.5f * atpage_box_width, 0.f)
+	);
+
+	window.draw(atpage);
+	
+	if (npages > 1) {
+		// Draw the navigation arrow indicators on the left half of the box.
+		// Up arrow.
+		const auto arrow_sz = atpage_box_height - 7.f;
+		const auto arrow_radius = .5f * arrow_sz;
+		const auto arrow_padding = .5f * arrow_radius;
+		sf::CircleShape up(arrow_radius, 3);
+
+		up.setFillColor(txt_color);
+		up.setOrigin(-arrow_padding, -arrow_padding);
+		up.setPosition(
+			atpage_box.getPosition() + 
+			sf::Vector2f(arrow_padding, 2.f)
+		);
+
+		window.draw(up);
+
+		// Down arrow right next to the up arrow.
+		sf::CircleShape down(up);
+		down.scale(1.f, -1.f);
+		down.move(2.f * arrow_radius, 2.5f * arrow_radius);
+		window.draw(down);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -589,7 +648,7 @@ auto Menu<T>::findOption(const T id) -> decltype(m_options.begin())
 	// object it points to, so normal iterators are needed instead of const ones.
 	auto it = std::find_if(m_options.begin(), m_options.end(),
 		[id](const auto& option) {
-			[[maybe_unused]] const auto& [id_i, UNUSED_] = option;
+			[[maybe_unused]] const auto& [id_i, UNUSED1_, UNUSED2_] = option;
 			return id_i == id;
 		}
 	);
