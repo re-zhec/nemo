@@ -28,7 +28,7 @@ namespace {
 	 * 
 	 * \return 0-based 1-D index..
 	 */
-	inline decltype(auto) 
+	inline auto
 	translateTo1DIndex(const size_t r, const size_t c, const size_t ncols)
 	noexcept
 	{
@@ -46,7 +46,7 @@ namespace {
 	 * 
 	 * \return 0-based 1-D index.
 	 */
-	inline decltype(auto) 
+	inline auto
 	translateTo1DIndex(const std::pair<size_t, size_t> rc, const size_t ncols)
 	noexcept
 	{
@@ -63,7 +63,7 @@ namespace {
 	 * 
 	 * \return Row and column indices.
 	 */
-	inline decltype(auto)
+	inline auto
 	translateToRowColumn(const size_t idx, const size_t ncols) 
 	noexcept
 	{
@@ -87,7 +87,7 @@ Menu<T>::Menu(
 	const sf_color3 option_color,
 	const sf_color3 cursor_color,
 	const sf_color2 box_color,
-	const std::string font_file
+	const std::string& font_file
 )	
 	: m_pos(pos)
 	, m_dim(dim)
@@ -182,10 +182,11 @@ Menu<T>::Menu(const std::string& xmlfile)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-Menu<T>& Menu<T>::addOption(const T id, const std::string& txt)
+Menu<T>& 
+Menu<T>::add(const T id, const std::string& txt)
 {
 	// Make sure there is no other menu option that has the new ID.
-	const auto it = findOption(id);
+	const auto it = find(id);
 	assert(it == m_options.cend());
 
 	// Create the option's graphical text.
@@ -213,10 +214,11 @@ Menu<T>& Menu<T>::addOption(const T id, const std::string& txt)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-Menu<T>& Menu<T>::delOption(const T id)
+Menu<T>& 
+Menu<T>::remove(const T id)
 {
 	// Search for the option.
-	auto it = findOption(id);
+	auto it = find(id);
 	assert(it != m_options.cend());
 
 	// Delete it.
@@ -267,10 +269,11 @@ Menu<T>& Menu<T>::delOption(const T id)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-Menu<T>& Menu<T>::setOptionText(const T id, const std::string& txt)
+Menu<T>& 
+Menu<T>::setOptionText(const T id, const std::string& txt)
 {
 	// Search for the option.
-	const auto it = findOption(id);
+	const auto it = find(id);
 	assert(it != m_options.cend());
 	[[maybe_unused]] auto& [UNUSED0_, cur_txt, UNUSED2_] = *it;
 
@@ -284,10 +287,11 @@ Menu<T>& Menu<T>::setOptionText(const T id, const std::string& txt)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-Menu<T>& Menu<T>::setOptionColor(const T id, const sf_color3 color)
+Menu<T>& 
+Menu<T>::setOptionColor(const T id, const sf_color3 color)
 {
 	// Search for the option.
-	const auto it = findOption(id);
+	const auto it = find(id);
 	assert(it != m_options.cend());
 
 	// Change its colors.
@@ -300,7 +304,9 @@ Menu<T>& Menu<T>::setOptionColor(const T id, const sf_color3 color)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool Menu<T>::empty() const noexcept
+bool 
+Menu<T>::empty() 
+const noexcept
 {
 	return m_options.empty();
 }
@@ -310,7 +316,8 @@ bool Menu<T>::empty() const noexcept
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::moveUp()
+void 
+Menu<T>::moveUp()
 {
 	if ([[maybe_unused]] const auto 
 		[last_r, UNUSED_] = translateToRowColumn(m_options.size() - 1, m_cols);
@@ -330,7 +337,8 @@ void Menu<T>::moveUp()
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::moveDown()
+void 
+Menu<T>::moveDown()
 {
 	if ([[maybe_unused]] const auto 
 		[last_r, UNUSED_] = translateToRowColumn(m_options.size() - 1, m_cols);
@@ -349,7 +357,8 @@ void Menu<T>::moveDown()
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::moveRight()
+void 
+Menu<T>::moveRight()
 {
 	if (m_cols == 1) {
 		// Right => down in a vertical menu. The number of columns is always 
@@ -367,7 +376,8 @@ void Menu<T>::moveRight()
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::moveLeft()
+void 
+Menu<T>::moveLeft()
 {
 	if (m_cols == 1) {
 		// Left => up in a vertical menu.
@@ -383,7 +393,8 @@ void Menu<T>::moveLeft()
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::draw(sf::RenderWindow& window)
+void 
+Menu<T>::draw(sf::RenderWindow& window)
 {
 	// Draw the menu box.
 	window.draw(m_box);
@@ -418,7 +429,8 @@ void Menu<T>::draw(sf::RenderWindow& window)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-std::optional<T> Menu<T>::getHoveredOption() const
+std::optional<T> 
+Menu<T>::cursorAt() const
 {
 	if (m_options.empty()) {
 		// Empty menu.
@@ -457,7 +469,8 @@ Menu<T>::Menu(ctor_args args)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::presetTextPosition(const size_t idx)
+void 
+Menu<T>::presetTextPosition(const size_t idx)
 {
 	assert(idx < m_options.size());
 
@@ -470,7 +483,7 @@ void Menu<T>::presetTextPosition(const size_t idx)
 	txt.setPosition(cell.getPosition());
 
 	// Veritcally center and horizontally left-align this option in the cell it
-	// it is placed in.
+	// is placed in.
 	const auto [width, height] = cell.getSize();
 	const auto hzalign = .075f * width;
 	const auto vtalign = .45f * (height - m_char_sz);
@@ -482,7 +495,8 @@ void Menu<T>::presetTextPosition(const size_t idx)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::move(const Direction dir)
+void 
+Menu<T>::move(const Direction dir)
 {
 	if (m_options.empty()) {
 		// No menu options => no cursor => no movement.
@@ -546,7 +560,8 @@ void Menu<T>::move(const Direction dir)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::setOptionColor(const size_t idx, const sf_color3 color)
+void 
+Menu<T>::setOptionColor(const size_t idx, const sf_color3 color)
 {
 	assert(idx < m_options.size());
 	[[maybe_unused]] auto& [UNUSED0_, UNUSED1_, cur_color] = m_options[idx];
@@ -558,7 +573,8 @@ void Menu<T>::setOptionColor(const size_t idx, const sf_color3 color)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::setOptionColor(const size_t r, const size_t c, 
+void 
+Menu<T>::setOptionColor(const size_t r, const size_t c, 
 	const sf_color3 color)
 {
 	const auto idx = translateTo1DIndex(r, c, m_cols);
@@ -570,7 +586,8 @@ void Menu<T>::setOptionColor(const size_t r, const size_t c,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void Menu<T>::drawOption(const size_t idx, sf::RenderWindow& window)
+void 
+Menu<T>::drawOption(const size_t idx, sf::RenderWindow& window)
 {
 	assert(idx < m_options.size());
 
@@ -592,8 +609,13 @@ void Menu<T>::drawOption(const size_t idx, sf::RenderWindow& window)
 	window.draw(txt);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename T>
-void Menu<T>::drawPageRef(sf::RenderWindow& window) const
+void 
+Menu<T>::drawPageRef(sf::RenderWindow& window) const
 {
 	// Get the page number the cursor is on as well as the total number of pages 
 	// of options the menu has.
@@ -667,10 +689,9 @@ void Menu<T>::drawPageRef(sf::RenderWindow& window) const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-auto Menu<T>::findOption(const T id) -> decltype(m_options.begin())
+auto 
+Menu<T>::find(const T id)
 {
-	// setOptionText() uses the returned iterator to modify the contents of the
-	// object it points to, so normal iterators are needed instead of const ones.
 	auto it = std::find_if(m_options.begin(), m_options.end(),
 		[id](const auto& option) {
 			[[maybe_unused]] const auto& [id_i, UNUSED1_, UNUSED2_] = option;
@@ -712,7 +733,6 @@ Menu<T>::parseXML(const std::string& xmlfile)
 
 	const auto margins = menu.child("margins");
 	args.outer_margins = args.getXMLMargins(margins.child("outer"));
-
 	args.inner_margins = args.getXMLMargins(margins.child("inner"));
 
 	const auto options = menu.child("options");

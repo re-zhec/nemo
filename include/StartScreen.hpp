@@ -8,30 +8,21 @@ namespace rp
 class StartScreen
 {
 public:
-	enum class MainMenuKey {
+	enum class StartMenuKey {
 		Play,
 		Continue,
 		Settings,
-		Quit,
-		A,
-		B,
-		C,
-		D,
-		E,
-		F,
-		G,
-		H,
-		I
+		Quit
 	};
 
 	StartScreen();
-	void Refresh(sf::RenderWindow& window, sf::Event& event);
+	void Update(sf::RenderWindow& window, sf::Event& event);
 	bool IsFileLoaded() const;
 
 private:
-	Menu<MainMenuKey> m_main_menu;
-	Menu<MainMenuKey> m_file_menu;
-	Menu<MainMenuKey> m_cfg_menu;
+	Menu<StartMenuKey> m_main_menu;
+	Menu<StartMenuKey> m_inv_menu;
+	Menu<StartMenuKey> m_cfg_menu;
 
 	int m_file;
 };

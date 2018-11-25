@@ -26,7 +26,6 @@ int main()
 		// there are pending events
 		if (window.pollEvent(event))
 		{
-			window.clear();
 			// Regardless of what state the game is in, pause the game when the 
 			// window loses focus and resume the game when the window regains 
 			// focus
@@ -49,10 +48,14 @@ int main()
 				switch (state)
 				{
 					case rp::GameState::Start:
-						start.Refresh(window, event);
+						start.Update(window, event);
+
 						if (start.IsFileLoaded()) {
-							state = rp::GameState::WorldMap;
+							state = rp::GameState::Pause;
 						}
+						break;
+
+					case rp::GameState::Pause:
 						break;
 
 					case rp::GameState::WorldMap:

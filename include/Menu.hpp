@@ -14,8 +14,8 @@ namespace rp
  * \brief Graphical menu.
  *
  * Calling the constructor creates an empty menu. The client must add options 
- * to the menu via \property addOption. The menu isn't displayed on the render 
- * window until \property Draw is called.
+ * to the menu via \property add. The menu isn't displayed on the render window
+ * until \property draw is called.
  * 
  * Menu options's IDs are templatized. This design is to help with compiler 
  * warnings/errors if the client accidentally two options from two different 
@@ -49,6 +49,8 @@ public:
 	 * 	1. \a pos, \a dim, or \a margins contains negative values.
 	 * 	2. \a rows or \a cols is 0.
 	 * 	3. a font file cannot be found at \var font_file.
+	 * 	4. \a char_sz is too tall to fit text in each slot allocated for menu 
+	 * 		options.
 	 * 
 	 * \param pos			Starting position in the render window, in this order:
 	 * 							1. X-coordinate.
@@ -97,7 +99,7 @@ public:
 		const sf_color3 cursor_color = {{244,50,116}, {250,250,250}, {229,197,191}},
 		const sf_color2 box_color = {{251,245,240}, {243,200,214}},
 		
-		const std::string font_file = "font/Montserrat/Montserrat-Regular.ttf"
+		const std::string& font_file = "font/Montserrat/Montserrat-Regular.ttf"
 	);
 
 	/**
@@ -106,7 +108,7 @@ public:
 	 * This constructor reads an XML file containing the arguments for the first 
 	 * constructor, extracts them, and calls the above constructor with them.
 	 * 
-	 * \param file		Path to the file containing menu parameters.
+	 * \param file		Path to the file containing menu arguments.
 	 */
 	Menu(const std::string& xmlfile);
 
@@ -121,10 +123,10 @@ public:
 	 * \param txt		Text to display.
 	 * 
 	 * \return A reference to the object itself. This allows for chaining 
-	 * multiples and combinations of \property addOption, \property delOption, 
-	 * \property setOptionText, \property setOptionColor, etc..
+	 * multiples and combinations of \property add, \property remove, \property 
+	 * setOptionText, \property setOptionColor, etc..
 	 */
-	Menu& addOption(const T id, const std::string& txt);
+	Menu& add(const T id, const std::string& txt);
 
 	/**
 	 * \brief Remove an option from the menu.
@@ -135,10 +137,10 @@ public:
 	 * \param id		ID of the menu option to remove.
 	 * 
 	 * \return A reference to the object itself. This allows for chaining 
-	 * multiples and combinations of \property addOption, \property delOption, 
-	 * \property setOptionText, \property setOptionColor, etc..
+	 * multiples and combinations of \property add, \property remove, \property 
+	 * setOptionText, \property setOptionColor, etc..
 	 */
-	Menu& delOption(const T id);
+	Menu& remove(const T id);
 
 	/**
 	 * \brief Change an option's text
@@ -150,8 +152,8 @@ public:
 	 * \param txt		New text to display.
 	 * 
 	 * \return A reference to the object itself. This allows for chaining 
-	 * multiples and combinations of \property addOption, \property delOption, 
-	 * \property setOptionText, \property setOptionColor, etc..
+	 * multiples and combinations of \property add, \property remove, \property 
+	 * setOptionText, \property setOptionColor, etc..
 	 */
 	Menu& setOptionText(const T id, const std::string& txt);
 
@@ -167,8 +169,8 @@ public:
 	 * \param colors	New color set.
 	 * 
 	 * \return A reference to the object itself. This allows for chaining 
-	 * multiples and combinations of \property addOption, \property delOption, 
-	 * \property setOptionText, \property setOptionColor, etc..
+	 * multiples and combinations of \property add, \property remove, \property 
+	 * setOptionText, \property setOptionColor, etc..
 	 */
 	Menu& setOptionColor(const T id, const sf_color3 color);
 
@@ -215,7 +217,7 @@ public:
 	void draw(sf::RenderWindow& window);
 
 	/**
-	 * \brief Get the option that the cursor is currently on.
+	 * \brief Get the option that the cursor is currently over.
 	 * 
 	 * Use this method if the player selects an option on the menu to find out 
 	 * what the player selected.
@@ -223,7 +225,7 @@ public:
 	 * \return The ID of the menu option that the cursor is on, or nothing 
 	 * if the menu is empty.
 	 */
-	std::optional<T> getHoveredOption() const;
+	std::optional<T> cursorAt() const;
 
 private:
 	/////////////////////////////////////////////////////////
@@ -274,7 +276,7 @@ private:
 	 * \brief Enumeration for which direction the player moves the cursor to in 
 	 * the menu.
 	 * 
-	 * This is used by \property Move, which \property moveUp, \property 
+	 * This is used by \property move, which \property moveUp, \property 
 	 * moveDown, \property moveLeft, and \property moveRight are wrappers of.
 	 */ 
 	enum class Direction {
@@ -448,7 +450,7 @@ private:
 	 * \brief Search for an option
 	 * 
 	 * This method finds the option that matches \a id. It SHOULDN'T find more 
-	 * than one since \property addOption disallows multiple menu options having 
+	 * than one since \property add disallows multiple menu options having 
 	 * the same ID, but if for some reason there is, it grabs the first 
 	 * occurrence.
 	 * 
@@ -457,7 +459,7 @@ private:
 	 * \return Non-const iterator to the menu option found. If there is no match, 
 	 * \var m_options.end() is returned.
 	 */
-	auto findOption(const T id) -> decltype(m_options.begin());
+	auto find(const T id);
 
 	/**
 	 * \brief Parse an XML file that contains arguments for constructing a Menu 
