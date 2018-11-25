@@ -8,112 +8,102 @@ namespace rp
 {
 
 /**
- * \brief Class for managing the player's inventory of items. 
+ * \brief Player's inventory of items.
  * 
  * Any item the player finds or buys is added here. Any item that is the player
- * discards or sells to be removed from here. The player should be able to see 
- * both unequipped and equipped items (in the case of weapons) here, so by 
- * design, all items in the inventory are stored as shared pointers. Thus, any 
- * changes to the item's info, such as its durability, will be reflected in the 
- * inventory. Up to 1000 items can be stored.
+ * discards or sells is to be removed from here. The player should be able to 
+ * see both unequipped and equipped items (in the case of weapons and armors) 
+ * here, so, all items in the inventory are stored as shared pointers. Any 
+ * changes to the item's info, such as any upgrades, will be reflected in the 
+ * inventory.
  */
 class Inventory
 {
 public:
 	/**
-	 * \brief Construct inventory of items
+	 * \brief Construct an empty inventory.
 	 * 
-	 * This contructor creates an empty inventory.
+	 * This constructor generates an assertion error if \a capacity is 0.
+	 * 
+	 * \param capacity		Maximum number of items the inventory can hold.
 	 */
-	Inventory();
+	Inventory(const size_t capacity);
 
 	/**
-	 * \brief Add an item to the inventory
+	 * \brief Add an item to the inventory.
 	 * 
-	 * The capacity of the inventory is 1000 items, including multiple copies of
-	 * the same item. Any further attempts to add an item after the capacity
-	 * capacity is reached will fail, with the item not being added.
+	 * Any further calls to this method when the inventory is full will do 
+	 * nothing. The item will not be added. Multiple copies of the same count 
+	 * toward the capacity of the inventory. 
 	 * 
-	 * \param item		Shared pointer to item object
+	 * \param item		Shared pointer to the item to be added.
 	 * 	
-	 * \return True if item is added; false otherwise
+	 * \return True if the item has been successfully added; false otherwise.
 	 */
-	bool Add(std::shared_ptr<Item> item);
+	bool add(std::shared_ptr<Item> item);
 
 	/**
-	 * \brief Remove all of the same item from the inventory
+	 * \brief Remove an item from the inventory.
 	 * 
-	 * This method will generate an assert error if the argument is an item that 
-	 * isn't in the inventory.
+	 * Since it is possible to have duplicates of the same item e.g. multiple 
+	 * Potions, \a which determines which one to remove. If there is only one 
+	 * copy, this argument should be 0. This method generates an assertion error 
+	 * if the item cannot be found in the inventory via \a id. It also generates 
+	 * one if \a which is out of range.
 	 * 
-	 * \param id		Item's ID
+	 * \param id		ID of the item group of which one is to be removed.
+	 * \param which	0-based index of the item to remove.
 	 */
-	void RemoveGroup(const ItemID id);
+	void remove(const ItemID id, const size_t which);
 
 	/**
-	 * \brief Remove a selected copy of the item from the inventory
+	 * \brief Remove all of this item from the inventory.
 	 * 
-	 * This method generates an assert error if the argument is an item that 
-	 * isn't in the inventory. It also generates an assert error if the selected 
-	 * index is beyond the size of the container in which all duplicates of the
-	 * same items are stored. In other words, if the inventory has only 3 
-	 * Elfires, RemoveOne(rp::WeapID::Elfire, 5) will fail because index 5 is 
-	 * out of bound.
+	 * Instead of removing just one copy, this removes all of the same item. It 
+	 * can be called even if there's only one copy left. It will behave like the 
+	 * above overloaded method. It generates an assertion error if the item 
+	 * cannot be found in the inventory via \a id.
 	 * 
-	 * \param id		Item's ID
-	 * \param which	Which copy of the item
+	 * \param id		ID of the item to remove all of.
 	 */
-	void RemoveOne(const ItemID id, const size_t which);
+	void remove(const ItemID id);
 
 	/**
-	 * \brief Get all duplicates of this item from the inventory
+	 * \brief Get the IDs, names, and quantity of all items currentlyin the 
+	 * inventory.
 	 * 
-	 * This method generates an assert error for the same conditions as 
-	 * RemoveGroup().
-	 * 
-	 * \param id		Item's ID
-	 * 
-	 * \return Vector containing all duplicates of the item
-	 * 
-	 * \see RemoveGroup
+	 * \return A vector, ordered from most recently found item to least recently, 
+	 * containing for each item:
+	 * 	1. its ID
+	 * 	2. its name
+	 * 	3. its quantity
 	 */
-	std::vector<std::shared_ptr<Item>>& SelectGroup(const ItemID id);
-	
-	/**
-	 * \brief Get selected copy of the item from the inventory.
-	 * 
-	 * This method generates an assert error for the same conditions as 
-	 * RemoveOne()
-	 * 
-	 * \param id		Item's ID
-	 * \param which	Which copy of the item
-	 * 
-	 * \return Selected copy of the item from the inventory
-	 * 
-	 * \see RemoveOne
-	 */
-	std::shared_ptr<Item>& SelectOne(const ItemID id, const size_t which);
-
-	/**
-	 * \brief Display inventory from the top level 
-	 * 
-	 * The top level is a list of names of the items and how many of each the 
-	 * player has in the inventory.
-	 */
-	void Overview() const &;
+	std::vector<std::tuple<ItemID, std::string, size_t>> 
+	peek() const;
 
 private:
-	// Capacity
+	///< Capacity.
 	const size_t m_capacity;
 
-	// Current number of items in inventory
+	///< Current number of items in the inventory.
 	size_t m_weight;
 
-	// Enforce chronological order of items with vector
-	std::vector<ItemID> m_order;
+	///< Item storage is implemented as an unordered map, where each key/value 
+	// pair corresponds to an item.
+	//		Key: Item's ID
+	//		Value: Objects for that item
+	std::unordered_map< 
+		ItemID, 
+		std::vector<std::shared_ptr<Item>> 
+	> m_storage;
 
-	// Storage is implemented as an unordered map.
-	std::unordered_map< ItemID, std::vector<std::shared_ptr<Item>> > m_storage;
+	///< Players normally expect an item they just found to be at the top of the 
+	// inventory when they look for it. However, the storage is unordered for 
+	// (potential) performance. Thus, a vector of IDs representing items 
+	// currently in the inventory is maintained, ordered from least recently 
+	// found to most recently. This order is opposite of that returned by  
+	// \property peek. 
+	std::vector<ItemID> m_order;
 };
 
 }

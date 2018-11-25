@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cassert>
-#include "../include/logger.hpp"
 #include "../include/Menu.hpp"
 
 namespace rp
@@ -305,8 +304,7 @@ Menu<T>::setOptionColor(const T id, const sf_color3 color)
 
 template <typename T>
 bool 
-Menu<T>::empty() 
-const noexcept
+Menu<T>::empty() const noexcept
 {
 	return m_options.empty();
 }
