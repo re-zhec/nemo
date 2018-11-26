@@ -59,7 +59,7 @@ Inventory::add(std::shared_ptr<Item> item)
 //																										//
 ////////////////////////////////////////////////////////////////////////////////
 
-void 
+std::optional< std::pair<std::shared_ptr<Item>, size_t> >
 Inventory::remove(const ItemID id, const size_t which)
 {
 	// Find where this item is in the storage and chronological list. The latter
@@ -68,18 +68,24 @@ Inventory::remove(const ItemID id, const size_t which)
 	const auto order_it = std::find(m_order.cbegin(), m_order.cend(), id);
 	assert(order_it != m_order.cend());
 	assert(storage_it != m_storage.cend());
-
-	// Delete the selected copy.
+	
 	auto& [UNUSED_, copies] = *storage_it;
 	assert(which < copies.size());
+
+	// Remove the selected copy.
+	const auto item = copies[which];
 	copies.erase(copies.cbegin() + which);
+	const auto n_remain = copies.size();
+
 	--m_weight;
 
-	if (copies.empty()) {
+	if (n_remain == 0) {
 		// That was the last one, so remove the metadata attached to the item.
 		m_storage.erase(storage_it);
 		m_order.erase(order_it);
 	}
+
+	return std::make_optional(std::make_pair(item, n_remain));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

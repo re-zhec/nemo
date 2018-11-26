@@ -35,11 +35,20 @@ PauseScreen::Update(sf::RenderWindow& window, sf::Event& event)
 					m_menu.moveRight();
 					break;
 				case sf::Keyboard::Enter:
-					if (const auto id = m_menu.cursorAt();
-						id)
-					{
-						m_menu.remove(*id);
-						m_inv->remove(*id, 0);
+					if (const auto id = m_menu.cursorAt()) {
+						if (const auto result = m_inv->remove(*id, 0)) {
+							if (const auto [item, n_remain] = *result;
+								n_remain > 0)
+							{
+								m_menu.setOptionText(
+									*id, 
+									item->Name() + " x " + std::to_string(n_remain)
+								);
+							}
+							else {
+								m_menu.remove(*id);
+							}
+						}
 					}
 					break;
 				default:

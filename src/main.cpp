@@ -9,16 +9,16 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(1280, 720), "Fire Emblem");
+	sf::RenderWindow window(sf::VideoMode(1280, 720), "Our Secret Base");
 	window.setFramerateLimit(30);
 	window.setKeyRepeatEnabled(false);
 	LOG_DEBUG("Window opened");
 
 	rp::Inventory inv(1000);
 	std::shared_ptr<rp::Item> weap = std::make_shared<rp::Weapon>(rp::ItemID::Bolgano);
-	// inv.add(weap);
-	// inv.add(weap);
-	// inv.add(weap);
+	inv.add(weap);
+	inv.add(weap);
+	inv.add(weap);
 
 	rp::GameState state;
 	rp::StartScreen start;

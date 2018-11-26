@@ -2,6 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <optional>
 #include "Item.hpp"
 
 namespace rp
@@ -53,8 +54,13 @@ public:
 	 * 
 	 * \param id		ID of the item group of which one is to be removed.
 	 * \param which	0-based index of the item to remove.
+	 * 
+	 * \return The removed item and how many of them are left in the inventory 
+	 * after the removal, or nullopt if the item cannot be removed for some 
+	 * reason.
 	 */
-	void remove(const ItemID id, const size_t which);
+	std::optional< std::pair<std::shared_ptr<Item>, size_t> >
+	remove(const ItemID id, const size_t which);
 
 	/**
 	 * \brief Remove all of this item from the inventory.
