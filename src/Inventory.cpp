@@ -1,8 +1,7 @@
 #include <algorithm>
 #include <cassert>
-#include "../include/logger.hpp"
+#include <boost/range/adaptor/reversed.hpp>
 #include "../include/Inventory.hpp"
-#include "../include/Item.hpp"
 
 namespace rp
 {
@@ -96,8 +95,7 @@ Inventory::peek() const
 	// Start from the last element instead of the first, since the chronological 
 	// list of IDs is ordered from least recently found to most recently but the 
 	// opposite order is expected.
-	for (auto it = m_order.crbegin(); it != m_order.crend(); ++it) {
-		const auto id = *it;
+	for (auto id : boost::adaptors::reverse(m_order)) {
 		const auto& copies = m_storage.at(id);
 		inside.push_back({id, copies[0]->Name(), copies.size()});
 	}

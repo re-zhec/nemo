@@ -5,7 +5,8 @@
 			"includePath": [
 				"${workspaceFolder}/**",
 				"C:/SFML/include",
-				"C:/pugixml/include"
+				"C:/pugixml/include",
+				"C:/MinGW/include"
 			],
 			"defines": [
 				"_DEBUG",

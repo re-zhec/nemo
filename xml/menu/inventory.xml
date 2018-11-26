@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<menu>
+	<pos x="40" y="40" />
+	<dim width="600" height="500" />
+	<margins>
+		<outer hz="10" vt="10" />
+		<inner hz="10" vt="10" />
+	</margins>
+	<options>
+		<view rows="5" cols="1" />
+		<char size="18" />
+		<text    red="43"  green="7"   blue="0"   />
+		<backgnd red="249" green="231" blue="228" />
+		<border  red="229" green="197" blue="191" />
+	</options>
+	<cursor>
+		<text    red="244" green="50"  blue="116" />
+		<backgnd red="250" green="250" blue="250" />
+		<border  red="229" green="197" blue="191" />
+	</cursor>
+	<box>
+		<backgnd red="251" green="245" blue="240" />
+		<border  red="243" green="200" blue="214" />
+	</box>
+	<font path="font/Montserrat/Montserrat-Regular.ttf" />
+</menu>

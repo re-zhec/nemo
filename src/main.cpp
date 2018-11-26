@@ -1,12 +1,11 @@
 #include <SFML/Graphics.hpp>
 #include "../include/Game.hpp"
 #include "../include/StartScreen.hpp"
+#include "../include/PauseScreen.hpp"
 #include "../include/Menu.hpp"
-#include "../include/logger.hpp"
-#include "../include/PartyChar.hpp"
-#include "../include/Item.hpp"
 #include "../include/Weapon.hpp"
-#include "../include/Inventory.hpp"
+#include "../include/Item.hpp"
+#include "../include/logger.hpp"
 
 int main()
 {
@@ -15,8 +14,15 @@ int main()
 	window.setKeyRepeatEnabled(false);
 	LOG_DEBUG("Window opened");
 
+	rp::Inventory inv(1000);
+	std::shared_ptr<rp::Item> weap = std::make_shared<rp::Weapon>(rp::ItemID::Bolgano);
+	// inv.add(weap);
+	// inv.add(weap);
+	// inv.add(weap);
+
 	rp::GameState state;
 	rp::StartScreen start;
+	rp::PauseScreen pause(std::make_shared<rp::Inventory>(inv));
 
 	// run the program as long as window is opened
 	while (window.isOpen())
@@ -51,11 +57,13 @@ int main()
 						start.Update(window, event);
 
 						if (start.IsFileLoaded()) {
+							LOG_DEBUG("pause screen");
 							state = rp::GameState::Pause;
 						}
 						break;
 
 					case rp::GameState::Pause:
+						pause.Update(window, event);
 						break;
 
 					case rp::GameState::WorldMap:
