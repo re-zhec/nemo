@@ -7,20 +7,20 @@ SRC := $(wildcard $(SRCDIR)/*.cpp)
 OBJ := $(SRC:src/%.cpp=$(OBJDIR)/%.o)
 LOG := $(wildcard $(EXEDIR)/*.log)
 
-CPPFLAGS	:= -IC:/SFML/include 
+CPPFLAGS := -IC:/SFML/include 
 CPPFLAGS += -IC:/pugixml/include
 CPPFLAGS += -IC:/MinGW/include
-CPPFLAGS	+= -MMD -DSFML_STATIC
+CPPFLAGS += -MMD -DSFML_STATIC
 
 CXXFLAGS := -std=c++17 -Wall -Wno-parentheses -pedantic
 
-LDFLAGS	:= -LC:MinGW/lib/
-LDFLAGS  += -LC:/SFML/lib
-LDFLAGS	+= -LC:/pugixml/lib
+LDFLAGS := -LC:MinGW/lib/
+LDFLAGS += -LC:/SFML/lib
+LDFLAGS += -LC:/pugixml/lib
 
-LDLIBS   := -lsfml-graphics-s -lsfml-window-s -lsfml-system-s
-LDLIBS   += -lopengl32 -lwinmm -lgdi32 -lfreetype
-LDLIBS	+=	-lpugixml
+LDLIBS := -lsfml-graphics-s -lsfml-window-s -lsfml-system-s
+LDLIBS += -lopengl32 -lwinmm -lgdi32 -lfreetype
+LDLIBS += -lpugixml
 
 .PHONY: all clean
 
