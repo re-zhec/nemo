@@ -53,6 +53,16 @@
         "xlocmes": "cpp",
         "xlocmon": "cpp",
         "xloctime": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cwctype": "cpp",
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "fstream": "cpp",
+        "sstream": "cpp",
+        "string_view": "cpp",
+        "cinttypes": "cpp",
+        "cassert": "cpp"
     }
 }

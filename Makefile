@@ -1,11 +1,11 @@
-DIR := ./build/
+EXEDIR := build
+OBJDIR := obj
+SRCDIR := src
 
-EXE := $(addprefix $(DIR), game.exe)
-LOG := $(wildcard $(addprefix $(DIR), *.log))
-
-SRC := $(wildcard ./src/*.cpp)
-OBJ := $(SRC:.cpp=.o)
-DEP := $(OBJ:.o=.d)
+EXE := $(EXEDIR)/game.exe
+SRC := $(wildcard $(SRCDIR)/*.cpp)
+OBJ := $(SRC:src/%.cpp=$(OBJDIR)/%.o)
+LOG := $(wildcard $(EXEDIR)/*.log)
 
 CPPFLAGS	:= -IC:/SFML/include 
 CPPFLAGS += -IC:/pugixml/include
@@ -18,24 +18,29 @@ LDFLAGS	:= -LC:MinGW/lib/
 LDFLAGS  += -LC:/SFML/lib
 LDFLAGS	+= -LC:/pugixml/lib
 
-# LDLIBS	:= -lreversed
 LDLIBS   := -lsfml-graphics-s -lsfml-window-s -lsfml-system-s
 LDLIBS   += -lopengl32 -lwinmm -lgdi32 -lfreetype
 LDLIBS	+=	-lpugixml
 
-.PHONY: setup all clean
+.PHONY: all clean
 
-setup:
-	mkdir -p $(DIR)
-	cp -r C:/pugixml/bin/libpugixml.dll $(DIR)
-	cp -r font $(DIR)
-	cp -r xml $(DIR)
+all: $(EXEDIR) $(OBJDIR) $(EXE)
+	
+clean:
+	rm -rf $(EXEDIR)
+	rm -rf $(OBJDIR)
 
-all: $(EXE)
+$(EXEDIR):
+	mkdir -p $(EXEDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
 $(EXE): $(OBJ)
-	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
+	cp -r C:/pugixml/bin/libpugixml.dll $(EXEDIR)
+	cp -r font $(EXEDIR)
+	cp -r xml $(EXEDIR)
+	$(CXX) $^ $(LDFLAGS) $(LDLIBS) -o $@ 
 
-clean:
-	rm -rf $(DIR) 
-	rm -rf $(OBJ) $(DEP)
+$(OBJ): $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
