@@ -4,7 +4,7 @@ SRCDIR := src
 
 EXE := $(EXEDIR)/game.exe
 SRC := $(wildcard $(SRCDIR)/*.cpp)
-OBJ := $(SRC:src/%.cpp=$(OBJDIR)/%.o)
+OBJ := $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 LOG := $(wildcard $(EXEDIR)/*.log)
 
 CPPFLAGS := -IC:/SFML/include 

@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <boost/assert.hpp>
 #include "../include/Menu.hpp"
-#include "../include/logger.hpp"
 
 namespace rp
 {
@@ -753,7 +752,6 @@ Menu<T>::parseXML(const std::string& xmlfile)
 	args.cols = view.attribute("cols").as_ullong();
 
 	args.align_center = option.child("align").attribute("center").as_bool();
-	LOG_DEBUG(args.align_center);
 	args.char_sz = option.child("char").attribute("size").as_ullong();
 
 	constexpr auto color = "color";
