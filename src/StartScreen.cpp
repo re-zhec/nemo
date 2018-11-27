@@ -13,12 +13,12 @@ StartScreen::StartScreen()
 	, m_file(0)
 {
 	m_main_menu
-		.add(StartMenuKey::Play, "Play")
-		.add(StartMenuKey::Continue, "Continue")
-		.add(StartMenuKey::Settings, "Settings")
-		.add(StartMenuKey::Quit, "Quit");
+		.add(MainMenuKey::Play, "Play")
+		.add(MainMenuKey::Continue, "Continue")
+		.add(MainMenuKey::Settings, "Settings")
+		.add(MainMenuKey::Quit, "Quit");
 
-	m_inv_menu.add(StartMenuKey::Play, "Play");
+	m_inv_menu.add(MainMenuKey::Play, "Play");
 }
 
 void StartScreen::Update(sf::RenderWindow& window, sf::Event& event)
@@ -56,28 +56,28 @@ void StartScreen::Update(sf::RenderWindow& window, sf::Event& event)
 				case sf::Keyboard::Enter:
 					LOG_DEBUG("enter key pressed");
 					
-					if (const auto selected = m_main_menu.cursorAt()) {
-						switch (*selected) {
-							case StartMenuKey::Play:
-								m_main_menu.setOptionText(*selected, "Poop");
-								break;
+					switch (const auto selected = m_main_menu.cursorAt();
+						selected.value_or(MainMenuKey::Default))
+					{
+						case MainMenuKey::Play:
+							m_main_menu.setOptionText(*selected, "Poop");
+							break;
 
-							case StartMenuKey::Continue:
-								m_file = 1;
-								break;
+						case MainMenuKey::Continue:
+							m_file = 1;
+							break;
 
-							case StartMenuKey::Settings:
-								m_main_menu.remove(*selected);
-								break;
+						case MainMenuKey::Settings:
+							m_main_menu.remove(*selected);
+							break;
 
-							case StartMenuKey::Quit:
-								window.close();
-								break;
-							
-							default:
-								m_main_menu.remove(*selected);
-								break;
-						}
+						case MainMenuKey::Quit:
+							window.close();
+							break;
+						
+						default:
+							m_main_menu.remove(*selected);
+							break;
 					}
 						
 					// confirm selection
@@ -92,9 +92,7 @@ void StartScreen::Update(sf::RenderWindow& window, sf::Event& event)
 			break;
 	}
 
-	sf::RectangleShape screen({1280.f, 720.f});
-	screen.setFillColor(sf::Color::White);
-	window.draw(screen);
+	window.clear(sf::Color::White);
 	m_main_menu.draw(window);
 }
 

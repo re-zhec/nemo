@@ -1,6 +1,7 @@
 #include <algorithm>
-#include <cassert>
+#include <boost/assert.hpp>
 #include "../include/Menu.hpp"
+#include "../include/logger.hpp"
 
 namespace rp
 {
@@ -82,6 +83,7 @@ Menu<T>::Menu(
 	const size_t cols,
 	const float2 outer_margins,
 	const float2 inner_margins,
+	const bool align_center,
 	const size_t char_sz,
 	const sf_color3 option_color,
 	const sf_color3 cursor_color,
@@ -91,21 +93,21 @@ Menu<T>::Menu(
 	: m_pos(pos)
 	, m_dim(dim)
 	, m_page_margins(outer_margins)
+	, m_align_center(align_center)
 	, m_rows(rows)
 	, m_cols(cols)
 	, m_option_color(option_color)
 	, m_cursor_color(cursor_color)
 	, m_char_sz(char_sz)	
 {
-	assert(m_pos >= std::make_pair(0.f, 0.f));
-	assert(m_dim >= std::make_pair(0.f, 0.f));
-	assert(m_rows > 0);
-	assert(m_cols > 0);
-	assert(m_char_sz > 0);
+	BOOST_ASSERT(m_pos >= std::make_pair(0.f, 0.f));
+	BOOST_ASSERT(m_dim >= std::make_pair(0.f, 0.f));
+	BOOST_ASSERT(m_rows > 0);
+	BOOST_ASSERT(m_cols > 0);
+	BOOST_ASSERT(m_char_sz > 0);
 
 	// Load the font file.
-	const auto found = m_font.loadFromFile(font_file);
-	assert(found);
+	BOOST_VERIFY(m_font.loadFromFile(font_file));
 
 	// Create the menu box.
 	const auto [x, y] = m_pos;
@@ -142,8 +144,8 @@ Menu<T>::Menu(
 		const auto [inner_hzmargin, inner_vtmargin] = inner_margins;
 		const auto cell_width = option_width - 2.f * inner_hzmargin;
 		const auto cell_height = option_height - 2.f * inner_vtmargin;
-		assert(cell_width > m_char_sz);
-		assert(cell_height > m_char_sz);
+		BOOST_ASSERT(cell_width > m_char_sz);
+		BOOST_ASSERT(cell_height > m_char_sz);
 
 		sf::RectangleShape cell({cell_width, cell_height});
 
@@ -186,7 +188,7 @@ Menu<T>::add(const T id, const std::string& txt)
 {
 	// Make sure there is no other menu option that has the new ID.
 	const auto it = find(id);
-	assert(it == m_options.cend());
+	BOOST_ASSERT(it == m_options.cend());
 
 	// Create the option's graphical text.
 	sf::Text option(txt, m_font, m_char_sz);
@@ -218,7 +220,7 @@ Menu<T>::remove(const T id)
 {
 	// Search for the option.
 	auto it = find(id);
-	assert(it != m_options.cend());
+	BOOST_ASSERT(it != m_options.cend());
 
 	// Delete it.
 	it = m_options.erase(it);
@@ -273,7 +275,7 @@ Menu<T>::setOptionText(const T id, const std::string& txt)
 {
 	// Search for the option.
 	const auto it = find(id);
-	assert(it != m_options.cend());
+	BOOST_ASSERT(it != m_options.cend());
 	[[maybe_unused]] auto& [UNUSED0_, cur_txt, UNUSED2_] = *it;
 
 	// Change to new text.
@@ -291,7 +293,7 @@ Menu<T>::setOptionColor(const T id, const sf_color3 color)
 {
 	// Search for the option.
 	const auto it = find(id);
-	assert(it != m_options.cend());
+	BOOST_ASSERT(it != m_options.cend());
 
 	// Change its colors.
 	setOptionColor(it - m_options.cbegin(), color);
@@ -326,6 +328,8 @@ Menu<T>::moveUp()
 		move(Direction::Left);
 	}
 	else {
+		// move() checks that the menu isn't empty, so no need to deal with that 
+		// here.
 		move(Direction::Up);
 	}
 }
@@ -346,6 +350,7 @@ Menu<T>::moveDown()
 		move(Direction::Right);
 	} 
 	else {
+		// move() checks that the menu isn't empty.
 		move(Direction::Down);
 	}
 }
@@ -358,6 +363,8 @@ template <typename T>
 void 
 Menu<T>::moveRight()
 {
+	// move() checks that the menu isn't empty, so no need to deal with that 
+	// here.
 	if (m_cols == 1) {
 		// Right => down in a vertical menu. The number of columns is always 
 		// capped at the number of columns per page, unlike the number of rows in 
@@ -377,6 +384,7 @@ template <typename T>
 void 
 Menu<T>::moveLeft()
 {
+	// move() checks that the menu isn't empty.
 	if (m_cols == 1) {
 		// Left => up in a vertical menu.
 		move(Direction::Up);
@@ -437,7 +445,7 @@ Menu<T>::cursorAt() const
 
 	const auto idx = translateTo1DIndex(m_cursor_rc, m_cols);
 	[[maybe_unused]] const auto& [id, UNUSED1_, UNUSED2_] = m_options[idx];
-	return std::make_optional(id);
+	return {id};
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -453,6 +461,7 @@ Menu<T>::Menu(ctor_args args)
 		args.cols,
 		args.outer_margins,
 		args.inner_margins,
+		args.align_center,
 		args.char_sz,
 		args.option_color,
 		args.cursor_color,
@@ -470,7 +479,7 @@ template <typename T>
 void 
 Menu<T>::presetTextPosition(const size_t idx)
 {
-	assert(idx < m_options.size());
+	BOOST_ASSERT(idx < m_options.size());
 
 	// Menu options are positioned from left to right down across rows. After 
 	// a page is filled, the graphical positions start over from the top left 
@@ -480,11 +489,14 @@ Menu<T>::presetTextPosition(const size_t idx)
 	txt.setOrigin(cell.getOrigin());
 	txt.setPosition(cell.getPosition());
 
-	// Veritcally center and horizontally left-align this option in the cell it
-	// is placed in.
+	// Veritcally center this option in the cell it is placed in. Horizontal 
+	// alignment depends on what was requested during construction.
 	const auto [width, height] = cell.getSize();
-	const auto hzalign = .075f * width;
 	const auto vtalign = .45f * (height - m_char_sz);
+
+	const auto txt_width = txt.getLocalBounds().width;
+	const auto hzalign = m_align_center ? .475f * (width - txt_width) : 10.f;
+	
 	txt.move(hzalign, vtalign);
 }
 
@@ -561,7 +573,7 @@ template <typename T>
 void 
 Menu<T>::setOptionColor(const size_t idx, const sf_color3 color)
 {
-	assert(idx < m_options.size());
+	BOOST_ASSERT(idx < m_options.size());
 	[[maybe_unused]] auto& [UNUSED0_, UNUSED1_, cur_color] = m_options[idx];
 	cur_color = color;
 }
@@ -587,7 +599,7 @@ template <typename T>
 void 
 Menu<T>::drawOption(const size_t idx, sf::RenderWindow& window)
 {
-	assert(idx < m_options.size());
+	BOOST_ASSERT(idx < m_options.size());
 
 	// Although we can have pages of menu options, to save memory, we have only a 
 	// page worth of cells to use. So, grab the one the menu option would be
@@ -710,8 +722,10 @@ Menu<T>::parseXML(const std::string& xmlfile)
 {
 	// Load XML document.
 	pugi::xml_document doc;
-	const auto result = doc.load_file(xmlfile.c_str());
-	assert(result.status == pugi::status_ok);
+	BOOST_VERIFY(
+		doc.load_file(xmlfile.c_str())
+			.status == pugi::status_ok
+	);
 
 	// Populate constructor arguments struct
 	ctor_args args = {};
@@ -729,35 +743,38 @@ Menu<T>::parseXML(const std::string& xmlfile)
 		dim.attribute("height").as_float()
 	};
 
-	const auto margins = menu.child("margins");
+	const auto margins = menu.child("margin");
 	args.outer_margins = args.getXMLMargins(margins.child("outer"));
 	args.inner_margins = args.getXMLMargins(margins.child("inner"));
 
-	const auto options = menu.child("options");
-	const auto view = options.child("view");
+	const auto option = menu.child("option");
+	const auto view = option.child("view");
 	args.rows = view.attribute("rows").as_ullong();
 	args.cols = view.attribute("cols").as_ullong();
 
-	args.char_sz = options.child("char").attribute("size").as_ullong();
+	args.align_center = option.child("align").attribute("center").as_bool();
+	LOG_DEBUG(args.align_center);
+	args.char_sz = option.child("char").attribute("size").as_ullong();
 
+	constexpr auto color = "color";
+	const auto option_color = option.child(color);
 	args.option_color = {
-		args.getXMLColor(options.child("text")),
-		args.getXMLColor(options.child("backgnd")),
-		args.getXMLColor(options.child("border"))
+		args.getXMLColor(option_color.child("text")),
+		args.getXMLColor(option_color.child("backgnd")),
+		args.getXMLColor(option_color.child("border"))
 	};
 
-	const auto cursor = menu.child("cursor");
+	const auto cursor_color = menu.child("cursor").child(color);
 	args.cursor_color = {
-		args.getXMLColor(cursor.child("text")),
-		args.getXMLColor(cursor.child("backgnd")),
-		args.getXMLColor(cursor.child("border"))
+		args.getXMLColor(cursor_color.child("text")),
+		args.getXMLColor(cursor_color.child("backgnd")),
+		args.getXMLColor(cursor_color.child("border"))
 	};
 
-	const auto box = menu.child("box");
-
+	const auto box_color = menu.child("box").child(color);
 	args.box_color = {
-		args.getXMLColor(box.child("backgnd")),
-		args.getXMLColor(box.child("border"))
+		args.getXMLColor(box_color.child("backgnd")),
+		args.getXMLColor(box_color.child("border"))
 	};
 
 	const auto font = menu.child("font");
@@ -775,9 +792,10 @@ sf::Color
 Menu<T>::ctor_args::getXMLColor(const pugi::xml_node& color)
 {
 	return {
-		static_cast<sf::Uint8>(color.attribute("red").as_uint()),
-		static_cast<sf::Uint8>(color.attribute("green").as_uint()),
-		static_cast<sf::Uint8>(color.attribute("blue").as_uint())
+		static_cast<sf::Uint8>(color.attribute("r").as_uint()),
+		static_cast<sf::Uint8>(color.attribute("g").as_uint()),
+		static_cast<sf::Uint8>(color.attribute("b").as_uint()),
+		static_cast<sf::Uint8>(color.attribute("a").as_uint())
 	};
 }
 

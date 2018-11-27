@@ -59,6 +59,7 @@ Inventory::add(std::shared_ptr<Item> item)
 //																										//
 ////////////////////////////////////////////////////////////////////////////////
 
+[[nodiscard]]
 std::optional< std::pair<std::shared_ptr<Item>, size_t> >
 Inventory::remove(const ItemID id, const size_t which)
 {
@@ -85,7 +86,7 @@ Inventory::remove(const ItemID id, const size_t which)
 		m_order.erase(order_it);
 	}
 
-	return std::make_optional(std::make_pair(item, n_remain));
+	return { {item, n_remain} };
 }
 
 ////////////////////////////////////////////////////////////////////////////////

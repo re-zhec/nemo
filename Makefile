@@ -23,16 +23,15 @@ LDLIBS   := -lsfml-graphics-s -lsfml-window-s -lsfml-system-s
 LDLIBS   += -lopengl32 -lwinmm -lgdi32 -lfreetype
 LDLIBS	+=	-lpugixml
 
-.PHONY: all clean
+.PHONY: setup all clean
 
-all: $(DIR) $(EXE)
-
-$(DIR):
+setup:
 	mkdir -p $(DIR)
-	cp -r C:/SFML/bin/* $(DIR)
-	cp -r C:/pugixml/bin/* $(DIR)
+	cp -r C:/pugixml/bin/libpugixml.dll $(DIR)
 	cp -r font $(DIR)
 	cp -r xml $(DIR)
+
+all: $(EXE)
 
 $(EXE): $(OBJ)
 	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@

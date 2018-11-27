@@ -25,7 +25,7 @@ class Menu
 {
 public:
 	/////////////////////////////////////////////////////////
-	// Type alias
+	// Additional types
 	/////////////////////////////////////////////////////////
 	using float2 = std::pair<float, float>;
 	using sf_color2 = std::pair<sf::Color, sf::Color>;
@@ -70,6 +70,8 @@ public:
 	 * \param inner_margins		Margins between each menu option, in this order:
 	 * 									1. horizontal margins.
 	 * 									2. vertical margins.
+	 * \param align_center		Whether all menu's text should be horizontally 
+	 * 								centered.
 	 * \param char_sz				Character size of each menu option's text.
 	 * \param option_color		Colors of each menu option, in this order:
 	 * 									1. text color.
@@ -92,6 +94,7 @@ public:
 
 		const float2 outer_margins = {10.f, 10.f},
 		const float2 inner_margins = {10.f, 10.f},
+		const bool align_center = false,
 		const size_t char_sz = 20,
 
 		const sf_color3 option_color = {{43,7,0}, {249,231,228}, {229,197,191}},
@@ -242,6 +245,7 @@ private:
 		size_t cols;
 		float2 outer_margins;
 		float2 inner_margins;
+		bool align_center;
 		size_t char_sz;
 		sf_color3 option_color;
 		sf_color3 cursor_color;
@@ -302,6 +306,11 @@ private:
 	//		1. Horizontal.
 	//		2. Vertical.
 	float2 m_page_margins;
+
+	///< Whether all menu options' text should be center-aligned horizontally.
+	bool m_align_center;
+
+	///< Whether the menu options' text should 
 
 	///< Maximum rows of menu options per page.
 	size_t m_rows;

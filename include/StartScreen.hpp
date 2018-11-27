@@ -8,11 +8,12 @@ namespace rp
 class StartScreen
 {
 public:
-	enum class StartMenuKey {
+	enum class MainMenuKey {
 		Play,
 		Continue,
 		Settings,
-		Quit
+		Quit,
+		Default
 	};
 
 	StartScreen();
@@ -20,9 +21,9 @@ public:
 	bool IsFileLoaded() const;
 
 private:
-	Menu<StartMenuKey> m_main_menu;
-	Menu<StartMenuKey> m_inv_menu;
-	Menu<StartMenuKey> m_cfg_menu;
+	Menu<MainMenuKey> m_main_menu;
+	Menu<MainMenuKey> m_inv_menu;
+	Menu<MainMenuKey> m_cfg_menu;
 
 	int m_file;
 };

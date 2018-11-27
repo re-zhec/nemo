@@ -59,6 +59,7 @@ public:
 	 * after the removal, or nullopt if the item cannot be removed for some 
 	 * reason.
 	 */
+	[[nodiscard]]
 	std::optional< std::pair<std::shared_ptr<Item>, size_t> >
 	remove(const ItemID id, const size_t which);
 

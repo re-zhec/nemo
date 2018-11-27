@@ -20,7 +20,7 @@ int main()
 	inv.add(weap);
 	inv.add(weap);
 
-	rp::GameState state;
+	rp::GameState state = rp::GameState::Start;
 	rp::StartScreen start;
 	rp::PauseScreen pause(std::make_shared<rp::Inventory>(inv));
 

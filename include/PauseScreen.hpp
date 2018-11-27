@@ -9,13 +9,22 @@ namespace rp
 class PauseScreen
 {
 public:
+	enum class MainMenuKey {
+		Party,
+		Items,
+		Gears,
+		Map,
+		Logs,
+		Default
+	};
 
 	PauseScreen(std::shared_ptr<Inventory> inv);
 	void Update(sf::RenderWindow& window, sf::Event& event);
 
 private:
 	std::shared_ptr<Inventory> m_inv;
-	Menu<ItemID> m_menu;
+	Menu<MainMenuKey> m_main_menu;
+	Menu<ItemID> m_item_menu;
 };
 
 }
