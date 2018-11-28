@@ -111,6 +111,26 @@ private:
 	// found to most recently. This order is opposite of that returned by  
 	// \property peek. 
 	std::vector<ItemID> m_order;
+
+	/**
+	 * \brief Search for this item in the inventory.
+	 * 
+	 * This method finds the item that matches \a id. It SHOULDN'T find more 
+	 * than one since \property add disallows multiple menu options having 
+	 * the same ID, but if for some reason there is, it grabs the first 
+	 * occurrence.
+	 * 
+	 * \param id		ID of the item to find.
+	 * 
+	 * \return A pair containing, in this order:
+	 * 	1. A non-const iterator to the ID of the found item from the 
+	 * 		chronological list. If there is no match, \var m_order.end() is 
+	 * 		returned.
+	 * 	2. A non-const iterator to all copies of the found item from storage.
+	 * 		If there is no match, \var m_storage.end() is returned.
+	 */
+	auto find(const ItemID id) 
+		-> decltype(std::make_pair(m_order.begin(), m_storage.begin()));
 };
 
 }

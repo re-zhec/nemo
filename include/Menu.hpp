@@ -27,7 +27,6 @@ public:
 	/////////////////////////////////////////////////////////
 	// Additional types
 	/////////////////////////////////////////////////////////
-	using float2 = std::pair<float, float>;
 	using sf_color2 = std::pair<sf::Color, sf::Color>;
 	using sf_color3 = std::tuple<sf::Color, sf::Color, sf::Color>;
 	
@@ -87,13 +86,13 @@ public:
 	 * \param font_file			Font's filepath.
 	 */
 	Menu(
-		const float2 pos,
-		const float2 dim,
+		const sf::Vector2f pos,
+		const sf::Vector2f dim,
 		const size_t rows, 
 		const size_t cols, 
 
-		const float2 outer_margins = {10.f, 10.f},
-		const float2 inner_margins = {10.f, 10.f},
+		const sf::Vector2f outer_margins = {10.f, 10.f},
+		const sf::Vector2f inner_margins = {10.f, 10.f},
 		const bool align_center = false,
 		const size_t char_sz = 20,
 
@@ -239,12 +238,12 @@ private:
 	 * second constructor creates one from reading the XML file.
 	 */
 	using ctor_args = struct ctor_args {
-		float2 pos;
-		float2 dim;
+		sf::Vector2f pos;
+		sf::Vector2f dim;
 		size_t rows;
 		size_t cols;
-		float2 outer_margins;
-		float2 inner_margins;
+		sf::Vector2f outer_margins;
+		sf::Vector2f inner_margins;
 		bool align_center;
 		size_t char_sz;
 		sf_color3 option_color;
@@ -257,7 +256,7 @@ private:
 		 * attributes.
 		 * 
 		 * \param color 		An XML element node containing attributes named 
-		 * 						"red", "green", and "blue", each paired with a value.
+		 * 						"r", "g", "b", and "a", each paired with a value.
 		 * 
 		 * \return An SFML Color object
 		 */
@@ -272,7 +271,7 @@ private:
 		 * 
 		 * \return Horizontal and vertical margins, in that order.
 		 */
-		float2 getXMLMargins(const pugi::xml_node& margins);
+		sf::Vector2f getXMLMargins(const pugi::xml_node& margins);
 	};
 
 	/**
@@ -292,21 +291,6 @@ private:
 	/////////////////////////////////////////////////////////
 	// Variables
 	/////////////////////////////////////////////////////////
-	///< Starting xy-coordinate relative to the render window.
-	//		1. X-coordinate.
-	//		2. Y-coordinate.
-	float2 m_pos;
-	///< Size of the entire menu. This doesn't include the page number and 
-	// navigation arrow indicators that may be added directly below the menu.
-	//		1. Width.
-	//		2. Height.
-	float2 m_dim;
-
-	///< Margins between the sides of the menu and of the outer menu options.
-	//		1. Horizontal.
-	//		2. Vertical.
-	float2 m_page_margins;
-
 	///< Whether all menu options' text should be center-aligned horizontally.
 	bool m_align_center;
 
@@ -467,7 +451,7 @@ private:
 	 * \return Non-const iterator to the menu option found. If there is no match, 
 	 * \var m_options.end() is returned.
 	 */
-	auto find(const T id);
+	auto find(const T id) -> decltype(m_options.begin());
 
 	/**
 	 * \brief Parse an XML file that contains arguments for constructing a Menu 

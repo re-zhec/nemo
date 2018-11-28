@@ -76,12 +76,12 @@ namespace {
 
 template <typename T> 
 Menu<T>::Menu(
-	const float2 pos,
-	const float2 dim,
+	const sf::Vector2f pos,
+	const sf::Vector2f dim,
 	const size_t rows, 
 	const size_t cols,
-	const float2 outer_margins,
-	const float2 inner_margins,
+	const sf::Vector2f outer_margins,
+	const sf::Vector2f inner_margins,
 	const bool align_center,
 	const size_t char_sz,
 	const sf_color3 option_color,
@@ -89,18 +89,16 @@ Menu<T>::Menu(
 	const sf_color2 box_color,
 	const std::string& font_file
 )	
-	: m_pos(pos)
-	, m_dim(dim)
-	, m_page_margins(outer_margins)
-	, m_align_center(align_center)
+	: m_align_center(align_center)
 	, m_rows(rows)
 	, m_cols(cols)
 	, m_option_color(option_color)
+	, m_cursor_rc({0, 0})
 	, m_cursor_color(cursor_color)
 	, m_char_sz(char_sz)	
 {
-	BOOST_ASSERT(m_pos >= std::make_pair(0.f, 0.f));
-	BOOST_ASSERT(m_dim >= std::make_pair(0.f, 0.f));
+	BOOST_ASSERT(pos.x >= 0.f && pos.y >= 0.f);
+	BOOST_ASSERT(dim.x >= 0.f && dim.y >= 0.f);
 	BOOST_ASSERT(m_rows > 0);
 	BOOST_ASSERT(m_cols > 0);
 	BOOST_ASSERT(m_char_sz > 0);
@@ -109,23 +107,22 @@ Menu<T>::Menu(
 	BOOST_VERIFY(m_font.loadFromFile(font_file));
 
 	// Create the menu box.
-	const auto [x, y] = m_pos;
-	const auto [width, height] = m_dim;
+	m_box.setSize(dim);
+	m_box.setPosition(pos);
+	m_box.setOutlineThickness(-1.f);
+	
 	const auto [box_back_color, box_bord_color] = box_color;
-
-	m_box.setSize({width, height});
 	m_box.setFillColor(box_back_color);
 	m_box.setOutlineColor(box_bord_color);
-	m_box.setOutlineThickness(-1.f);
-	m_box.setPosition(x, y);
 
-	// The area of the menu inside the margins are reserved for menu options. 
-	// From there, the number of rows and columns of options determine each 
-	// option's width and height. For now, inner margins are included in the 
-	// width and height.
-	const auto [hzmargin, vtmargin] = m_page_margins;
-	const auto option_width = (width - 2.f * hzmargin) / m_cols;
-	const auto option_height = (height - 2.f * vtmargin) / m_rows;
+	// The area of the menu inside the margins is reserved for menu options. From
+	// there, the number of rows and columns of options determine each option's 
+	// width and height. For now, inner margins are included in the width and 
+	// height.
+	const auto option_dim = sf::Vector2f(
+		(dim.x - 2.f * outer_margins.x) / m_cols,
+		(dim.y - 2.f * outer_margins.y) / m_rows
+	);
 
 	// Reserve some number of options to ease the number of forced memory 
 	// reallocations.
@@ -134,29 +131,27 @@ Menu<T>::Menu(
 	
 	// Create background cells to contain the menu options in one page. To save 
 	// memory, only one page worth is needed since the options outside of them 
-	// won't be drawn on screen. We can keep track of what the color of a cell 
-	// should be based on the contained option's metadata.
+	// won't be drawn on screen and all cells' positions stayed the same from 
+	// page to page. We can decide the color of a cell later from the contained 
+	// option's color configuration.
 	m_cells.reserve(noptions_per_page);
 
 	for (auto i = 0u; i < noptions_per_page; ++i) {
 		// Adjust cell cize so that inner margins can be inserted between them.
-		const auto [inner_hzmargin, inner_vtmargin] = inner_margins;
-		const auto cell_width = option_width - 2.f * inner_hzmargin;
-		const auto cell_height = option_height - 2.f * inner_vtmargin;
-		BOOST_ASSERT(cell_width > m_char_sz);
-		BOOST_ASSERT(cell_height > m_char_sz);
-
-		sf::RectangleShape cell({cell_width, cell_height});
+		const auto cell_dim = option_dim - 2.f * inner_margins;
+		BOOST_ASSERT(cell_dim.x > m_char_sz && cell_dim.y > m_char_sz);
+		sf::RectangleShape cell(cell_dim);
 
 		// Insert inner margins.
-		cell.setOrigin(-inner_hzmargin, -inner_vtmargin);
+		cell.setOrigin(-inner_margins);
 
 		// Place the cell in the appropriate spot in the menu. Cells line up from 
 		// left to right, down across rows.
 		const auto [r_i, c_i] = translateToRowColumn(i, m_cols);
 		cell.setPosition(
-			x + hzmargin + option_width * c_i, 
-			y + vtmargin + option_height * r_i
+			  dim 
+			+ inner_margins 
+			+ sf::Vector2f(option_dim.x * c_i, option_dim.y * r_i)
 		);
 
 		// The coloring of the cells is decided in drawOption() since they can 
@@ -194,18 +189,11 @@ Menu<T>::add(const T id, const std::string& txt)
 	
 	// Add the option to the menu.
 	m_options.push_back({id, option, m_option_color});
-	const auto idx = m_options.size() - 1;
-
-	if (idx == 0) {
-		// The cursor starts on the first option by default.
-		m_cursor_rc = translateToRowColumn(idx, m_cols);		
-		setOptionColor(idx, m_cursor_color);
-	}
-
+	
 	// Preset the option text's position on the menu for future rendering. Since 
 	// it was just added to menu, we can use the index of the last element in the
 	// menu option container.
-	presetTextPosition(idx);
+	presetTextPosition(m_options.size() - 1);
 	return *this;
 }
 
@@ -226,15 +214,8 @@ Menu<T>::remove(const T id)
 	const auto rm_idx = static_cast<decltype(m_options.size())>(
 		it - m_options.cbegin());
 
-	// Ignore the rest of the method if that removed option was the only one 
-	// left on the menu. The cursor will correct itself once another option is 
-	// added.
-	if (m_options.empty()) {
-		return *this;
-	}
-
 	// All options that followed the removed one need to have their text's render 
-	// positions shifted frontward one slot
+	// positions shifted frontward one slot.
 	for (auto i = rm_idx; i < m_options.size(); ++i) {
 		presetTextPosition(i);
 	}
@@ -247,18 +228,8 @@ Menu<T>::remove(const T id)
 		// Move the cursor frontward if it was on the last option when that was 
 		// removed, as the cursor is hovering over nothing there.
 		if (cur_idx == m_options.size()) {
-			// None of the other menu movement methods (moveUp(), moveDown(), etc.) 
-			// can be called because they change the colors of the option the 
-			// cursor was over, and there's nothing there. The cursor's position 
-			// need to be manually changed to the preceding menu option's.
-			--cur_idx;
-			m_cursor_rc = translateToRowColumn(cur_idx, m_cols);
+			moveLeft();
 		}
-		
-		// Otherwise, the cursor would just be pointing at the option following 
-		// the removed one. Either way, The option still has the non-cursor
-		// colors, so change that.
-		setOptionColor(cur_idx, m_cursor_color);
 	}
 
 	return *this;
@@ -488,13 +459,13 @@ Menu<T>::presetTextPosition(const size_t idx)
 	txt.setOrigin(cell.getOrigin());
 	txt.setPosition(cell.getPosition());
 
-	// Veritcally center this option in the cell it is placed in. Horizontal 
+	// Vertically center this option in the cell it is placed in. Horizontal 
 	// alignment depends on what was requested during construction.
+	constexpr auto center_pt = 0.475f;
 	const auto [width, height] = cell.getSize();
-	const auto vtalign = .45f * (height - m_char_sz);
-
+	const auto vtalign = center_pt * (height - m_char_sz);
 	const auto txt_width = txt.getLocalBounds().width;
-	const auto hzalign = m_align_center ? .475f * (width - txt_width) : 10.f;
+	const auto hzalign = m_align_center ? center_pt * (width - txt_width) : 10.f;
 	
 	txt.move(hzalign, vtalign);
 }
@@ -510,14 +481,7 @@ Menu<T>::move(const Direction dir)
 	if (m_options.empty()) {
 		// No menu options => no cursor => no movement.
 		return;
-	}
-
-	// Change the current menu option to the non-cursor colors before going to
-	// the next option.
-	auto& [r, c] = m_cursor_rc;
-	setOptionColor(r, c, m_option_color);
-
-	// Changing the current row or column...
+	}	
 
 	// The cursor should be able to wrap around the ends of the menu. Moving the 
 	// cursor left when it is at the leftmost option should take it to the 
@@ -534,6 +498,7 @@ Menu<T>::move(const Direction dir)
 
 	// Get the rightmost column at the current row the cursor is on. It's needed 
 	// when moving left and right.
+	auto& [r, c] = m_cursor_rc;
 	const auto right_c = r < last_r ? m_cols - 1 : last_c;
 
 	switch (dir) {
@@ -559,9 +524,6 @@ Menu<T>::move(const Direction dir)
 		default:
 			break;
 	}
-
-	// Color the menu option the cursor just moved to.
-	setOptionColor(r, c, m_cursor_color);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -604,10 +566,14 @@ Menu<T>::drawOption(const size_t idx, sf::RenderWindow& window)
 	// page worth of cells to use. So, grab the one the menu option would be
 	// drawn on.
 	auto& cell = m_cells[idx % m_cells.size()];
-
-	// Color the text and cell.
 	[[maybe_unused]] auto& [UNUSED_, txt, color] = m_options[idx];
-	const auto [txt_color, back_color, bord_color] = color;
+
+	// If the cursor is over this menu option, then use the cursor's colorset
+	// instead of the option's normal set.
+	const auto cursor_idx = translateTo1DIndex(m_cursor_rc, m_cols);
+	const auto [txt_color, back_color, bord_color] = idx != cursor_idx 
+		? color 
+		: m_cursor_color;
 
 	txt.setFillColor(txt_color);
 	cell.setFillColor(back_color);
@@ -699,7 +665,7 @@ Menu<T>::drawPageRef(sf::RenderWindow& window) const
 
 template <typename T>
 auto 
-Menu<T>::find(const T id)
+Menu<T>::find(const T id) -> decltype(m_options.begin())
 {
 	auto it = std::find_if(m_options.begin(), m_options.end(),
 		[id](const auto& option) {
@@ -799,7 +765,7 @@ Menu<T>::ctor_args::getXMLColor(const pugi::xml_node& color)
 
 
 template <typename T>
-typename Menu<T>::float2 
+sf::Vector2f
 Menu<T>::ctor_args::getXMLMargins(const pugi::xml_node& margins)
 {
 	return {

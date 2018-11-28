@@ -5,30 +5,30 @@
 namespace rp
 {
 /**
- * Enumeration of item IDs
+ * \brief Enumeration of item IDs.
  */
 enum class ItemID {
-	BrzSwd,	///< Bronze Sword
-	IrnSwd,	///< Iron Sword
-	SteSwd,	///< Steel Sword
-	SlvSwd,	///< Silver Sword
+	BrzSwd,	///< Bronze Sword.
+	IrnSwd,	///< Iron Sword.
+	SteSwd,	///< Steel Sword.
+	SlvSwd,	///< Silver Sword.
 
-	BrzLan,	///< Bronze Lance
-	IrnLan,	///< Iron Lance
-	SteLan,	///< Steel Lance
-	SlvLan,	///< Silver Lance
+	BrzLan,	///< Bronze Lance.
+	IrnLan,	///< Iron Lance.
+	SteLan,	///< Steel Lance.
+	SlvLan,	///< Silver Lance.
 
-	BrzAxe,	///< Bronze Axe
-	IrnAxe,	///< Iron Axe
-	SteAxe,	///< Steel Axe
-	SlvAxe,	///< Silver Axe
+	BrzAxe,	///< Bronze Axe.
+	IrnAxe,	///< Iron Axe.
+	SteAxe,	///< Steel Axe.
+	SlvAxe,	///< Silver Axe.
 
-	Fire,		///< Fire
-	Elfire,	///< Elfire
-	Arcfire,	///< Arcfire
-	Bolgano,	///< Bolganone
+	Fire,		///< Fire.
+	Elfire,	///< Elfire.
+	Arcfire,	///< Arcfire.
+	Bolgano,	///< Bolganone.
 
-	Wind		///< Wind
+	Wind		///< Wind.
 };
 
 enum class CharID; // Forward declaration

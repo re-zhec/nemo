@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <cassert>
+#include <boost/assert.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include "../include/Inventory.hpp"
 
@@ -14,7 +14,7 @@ Inventory::Inventory(const size_t capacity)
 	: m_capacity(capacity)
 	, m_weight(0)
 {
-	assert(m_capacity > 0);
+	BOOST_ASSERT(m_capacity > 0);
 
 	// In the worst case scenario, every item in inventory is unique i.e. there 
 	// are no extra copies of any item. The chronological list and storage should 
@@ -39,7 +39,7 @@ Inventory::add(std::shared_ptr<Item> item)
 
 	// Update the chronological list of items obtained.
 	const auto id = item->ID();
-	const auto it = std::find(m_order.cbegin(), m_order.cend(), id);
+	const auto [it, UNUSED_] = find(id);
 
 	// The container of IDs is ordered from the oldest item at the front to the 
 	// newest at the back. If the added item already exists in the inventory, 
@@ -65,13 +65,12 @@ Inventory::remove(const ItemID id, const size_t which)
 {
 	// Find where this item is in the storage and chronological list. The latter
 	// is needed if this item is the last of its kind left in the inventory.
-	const auto storage_it = m_storage.find(id);
-	const auto order_it = std::find(m_order.cbegin(), m_order.cend(), id);
-	assert(order_it != m_order.cend());
-	assert(storage_it != m_storage.cend());
+	auto [it_order, it_storage] = find(id);
+	BOOST_ASSERT(it_order != m_order.cend());
+	BOOST_ASSERT(it_storage != m_storage.cend());
 	
-	auto& [UNUSED_, copies] = *storage_it;
-	assert(which < copies.size());
+	auto& [UNUSED_, copies] = *it_storage;
+	BOOST_ASSERT(which < copies.size());
 
 	// Remove the selected copy.
 	const auto item = copies[which];
@@ -82,8 +81,8 @@ Inventory::remove(const ItemID id, const size_t which)
 
 	if (n_remain == 0) {
 		// That was the last one, so remove the metadata attached to the item.
-		m_storage.erase(storage_it);
-		m_order.erase(order_it);
+		m_storage.erase(it_storage);
+		m_order.erase(it_order);
 	}
 
 	return { {item, n_remain} };
@@ -108,6 +107,19 @@ Inventory::peek() const
 	}
 
 	return inside;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//																										//
+////////////////////////////////////////////////////////////////////////////////
+
+auto
+Inventory::find(const ItemID id) 
+-> decltype(std::make_pair(m_order.begin(), m_storage.begin()))
+{
+	auto it_order = std::find(m_order.begin(), m_order.end(), id);
+	auto it_storage = m_storage.find(id);
+	return std::make_pair(it_order, it_storage);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
