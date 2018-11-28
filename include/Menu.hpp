@@ -250,11 +250,11 @@ private:
 		std::string font_file;
 	
 		/**
-		 * \brief Extract the color from a json element that contains RGB 
+		 * \brief Create a sf::Color object out of a 4-element vector of integers. 
 		 * attributes.
 		 * 
-		 * \param color 		An json element node containing attributes named 
-		 * 						"r", "g", "b", and "a", each paired with a value.
+		 * \param color 		An json element node containing RGB values in this 
+		 * 						order: red, green, blue, and alpha (opacity).
 		 * 
 		 * \return An SFML Color object
 		 */
