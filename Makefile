@@ -9,7 +9,7 @@ LOG := $(wildcard $(EXEDIR)/*.log)
 
 CPPFLAGS := -IC:/SFML/include
 CPPFLAGS += -IC:/MinGW/include
-CPPFLAGS += -DSFML_STATIC
+CPPFLAGS += -MMD -MP -DSFML_STATIC
 
 CXXFLAGS := -std=c++17 -Wall -Wno-parentheses -pedantic
 

@@ -463,7 +463,7 @@ Menu<T>::presetTextPosition(const size_t idx)
 
 	// Vertically center this option in the cell it is placed in. Horizontal 
 	// alignment depends on what was requested during construction.
-	constexpr auto center_pt = 0.475f;
+	constexpr auto center_pt = .475f;
 	const auto [width, height] = cell.getSize();
 	const auto vtalign = center_pt * (height - m_char_sz);
 	const auto txt_width = txt.getLocalBounds().width;
@@ -715,90 +715,48 @@ Menu<T>::parseFile(const std::string& file)
 			js.at(position).at("x"), 
 			js.at(position).at("y")
 		};
-	}
-	catch (json::out_of_range& e) {
-		LOG_DEBUG("[" << position << "]: " << e.what() << ".");
-	}
-		
-	try {
+
 		args.dim = { 
 			js.at(dimensions).at("width"), 
 			js.at(dimensions).at("height") 
 		};
-	}
-	catch (json::out_of_range& e) {
-		LOG_DEBUG("[" << dimensions << "]: " << e.what() << ".");
-	}
-		
-	try {
+
 		args.outer_margins = {
 			js.at(box).at(margins).at(horizontal),
 			js.at(box).at(margins).at(vertical)
 		};
-	}
-	catch (json::out_of_range& e) {
-		LOG_DEBUG("[" << box << "][" << margins << "]: " << e.what() << ".");
-	}
 
-	try {
 		args.inner_margins = {
 			js.at(options).at(margins).at(horizontal),
 			js.at(options).at(margins).at(vertical)
 		};
-	}
-	catch (json::out_of_range& e) {
-		LOG_DEBUG("[" << options << "][" << margins << "]: " << e.what() << ".");
-	}
-		
-	try {
+
 		args.rows         = js.at(options).at("rows");
 		args.cols         = js.at(options).at("columns");
 		args.align_center = js.at(options).at("center");
 		args.char_sz      = js.at(options).at("size");
-	}
-	catch (json::out_of_range& e) {
-		LOG_DEBUG("[" << options << "]: " << e.what() << ".");
-	}
-
-	try {
 		args.font_file = js.at("font");
-	}
-	catch (json::out_of_range& e) {
-		LOG_DEBUG("[font]: " << e.what() << ".");
-	}
-	
-	try {
+
 		args.option_color = {
 			args.makeColor(js.at(options).at(colors).at(text)),
 			args.makeColor(js.at(options).at(colors).at(background)),
 			args.makeColor(js.at(options).at(colors).at(border))
 		};
-	}
-	catch (json::out_of_range& e) {
-		LOG_DEBUG("[" << options << "][" << colors << "]: " << e.what() << ".");
-	}
 
-	try {
 		args.cursor_color = {
 			args.makeColor(js.at(cursor).at(colors).at(text)),
 			args.makeColor(js.at(cursor).at(colors).at(background)),
 			args.makeColor(js.at(cursor).at(colors).at(border))
 		};
-	}
-	catch (json::out_of_range& e) {
-		LOG_DEBUG("[" << cursor << "][" << colors << "]: " << e.what() << ".");
-	}
 
-	try {
 		args.box_color = {
 			args.makeColor(js.at(box).at(colors).at(background)),
 			args.makeColor(js.at(box).at(colors).at(border))
 		};
 	}
 	catch (json::out_of_range& e) {
-		LOG_DEBUG("[" << box << "][" << colors << "]: " << e.what() << ".");
+		LOG_DEBUG(e.what() << ". " << __FILE__ << ":" << __LINE__);
 	}
-
 	return args;
 }
 
