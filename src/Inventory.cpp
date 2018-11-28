@@ -61,7 +61,7 @@ Inventory::add(std::shared_ptr<Item> item)
 
 [[nodiscard]]
 std::optional< std::pair<std::shared_ptr<Item>, size_t> >
-Inventory::remove(const ItemID id, const size_t which)
+Inventory::remove(const int id, const size_t which)
 {
 	// Find where this item is in the storage and chronological list. The latter
 	// is needed if this item is the last of its kind left in the inventory.
@@ -92,10 +92,10 @@ Inventory::remove(const ItemID id, const size_t which)
 //																										//
 ////////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::tuple<ItemID, std::string, size_t>>
+std::vector<std::tuple<int, std::string, size_t>>
 Inventory::peek() const
 {
-	std::vector<std::tuple<ItemID, std::string, size_t>> inside;
+	std::vector<std::tuple<int, std::string, size_t>> inside;
 	inside.reserve(m_order.size());
 
 	// Start from the last element instead of the first, since the chronological 
@@ -114,7 +114,7 @@ Inventory::peek() const
 ////////////////////////////////////////////////////////////////////////////////
 
 auto
-Inventory::find(const ItemID id) 
+Inventory::find(const int id) 
 -> decltype(std::make_pair(m_order.begin(), m_storage.begin()))
 {
 	auto it_order = std::find(m_order.begin(), m_order.end(), id);

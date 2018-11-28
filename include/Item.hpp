@@ -1,37 +1,8 @@
 #pragma once
 #include <string>
-#include <ostream>
 
 namespace rp
 {
-/**
- * \brief Enumeration of item IDs.
- */
-enum class ItemID {
-	BrzSwd,	///< Bronze Sword.
-	IrnSwd,	///< Iron Sword.
-	SteSwd,	///< Steel Sword.
-	SlvSwd,	///< Silver Sword.
-
-	BrzLan,	///< Bronze Lance.
-	IrnLan,	///< Iron Lance.
-	SteLan,	///< Steel Lance.
-	SlvLan,	///< Silver Lance.
-
-	BrzAxe,	///< Bronze Axe.
-	IrnAxe,	///< Iron Axe.
-	SteAxe,	///< Steel Axe.
-	SlvAxe,	///< Silver Axe.
-
-	Fire,		///< Fire.
-	Elfire,	///< Elfire.
-	Arcfire,	///< Arcfire.
-	Bolgano,	///< Bolganone.
-
-	Wind		///< Wind.
-};
-
-enum class CharID; // Forward declaration
 
 /**
  * \brief Abstract class representing an item, such as weapons, armors, healing 
@@ -48,7 +19,7 @@ public:
 	 * 
 	 * \param id		Item's ID
 	 */
-	Item(ItemID id);
+	Item(int id);
 
 	/**
 	 * \brief Destructs an item
@@ -64,7 +35,7 @@ public:
 	 * 
 	 * \return Item's ID
 	 */
-	ItemID ID() const;
+	int ID() const noexcept;
 
 	/**
 	 * \brief Get the name of the item
@@ -74,43 +45,11 @@ public:
 	 * 
 	 * \return Weapon's name
 	 */
-	virtual std::string Name() const = 0;
-
-	/**
-	 * \brief Check if the item is usuable.
-	 * 
-	 * When inherited by the \var Weapon class, this method indicates whether 
-	 * the weapon isn't broken i.e. still has uses remaining.
-	 * 
-	 * \return True if the item is; false otherwise.
-	 */
-	virtual bool IsUsable() const = 0;
-
-	/**
-	 * \brief Get the ID of the item's owner
-	 * 
-	 * \return Owner's ID
-	 */
-	CharID GetOwner() const;
-
-	/**
-	 * \brief Assign an owner to the item via the party character's ID
-	 * 
-	 * If this item already belongs to an owner i.e. the owner ID isn't 
-	 * CharID::None, then assigning a new owner to it will fail. In order to 
-	 * change ownership, \property SetOwner must be called twice, once with \var 
-	 * rp::CharID::None and again with the new owner's ID.
-	 * 
-	 * \return True if the weapon's owner is successfully set to the battle 
-	 * unit's ID; false otherwise.
-	 * 
-	 * \see GetOwner
-	 */
-	bool SetOwner(CharID owner) &;
+	std::string Name() const;
 	
 private:
-	ItemID m_id;			// Item's ID
-	CharID m_owner;		// Owner's ID
+	int m_id;			// Item's ID
+	std::string m_name;
 };
 
 }

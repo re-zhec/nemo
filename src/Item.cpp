@@ -1,11 +1,10 @@
 #include "../include/logger.hpp"
 #include "../include/Item.hpp"
-#include "../include/PartyChar.hpp"
 
 namespace rp
 {
 
-Item::Item(ItemID id)
+Item::Item(int id)
 	: m_id(id)
 {
 	LOG_DEBUG("Creating item with id " << m_id);
@@ -18,32 +17,14 @@ Item::~Item()
 }
 
 
-ItemID Item::ID() const
+int Item::ID() const noexcept
 {
 	return m_id;
 }
 
-
-CharID Item::GetOwner() const
+std::string Item::Name() const
 {
-	return m_owner;
-}
-
-
-bool Item::SetOwner(CharID owner) &
-{
-	if (m_owner != CharID::None && owner != CharID::None) {
-		// Already assigned to a party character
-		LOG_DEBUG(
-			"Cannot assign item id " << m_id << " to new owner id " << owner << 
-			". Currently belongs to owner id " << m_owner
-		);
-		return false;
-	}
-
-	m_owner = owner;
-	LOG_DEBUG("Assigned item id " << m_id << " to new owner id " << m_owner);
-	return true;
+	return m_name;
 }
 
 }

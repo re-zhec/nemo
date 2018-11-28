@@ -24,7 +24,7 @@ public:
 private:
 	std::shared_ptr<Inventory> m_inv;
 	Menu<MainMenuKey> m_main_menu;
-	Menu<ItemID> m_item_menu;
+	Menu<int> m_item_menu;
 };
 
 }

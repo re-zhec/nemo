@@ -6,8 +6,8 @@ namespace rp
 {
 
 StartScreen::StartScreen()
-	// : m_main_menu("xml/start_menu.xml")
-	: m_main_menu("xml/menu/start.xml")
+	: m_main_menu("json/menu/start.json")
+	// : m_main_menu({40.f, 40.f}, {600.f, 150.f}, 2, 4)
 	, m_inv_menu({40.f, 40.f}, {600.f, 150.f}, 2, 4)
 	, m_cfg_menu({0.f, 0.f}, {1280.f, 720.f}, 4, 8)
 	, m_file(0)

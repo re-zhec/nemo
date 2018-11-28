@@ -4,7 +4,7 @@
 #include <utility>
 #include <optional>
 #include <SFML/Graphics.hpp>
-#include <pugixml.hpp>
+#include <nlohmann/json.hpp>
 
 namespace rp
 {
@@ -25,13 +25,13 @@ class Menu
 {
 public:
 	/////////////////////////////////////////////////////////
-	// Additional types
+	// Additional types                                    //
 	/////////////////////////////////////////////////////////
 	using sf_color2 = std::pair<sf::Color, sf::Color>;
 	using sf_color3 = std::tuple<sf::Color, sf::Color, sf::Color>;
 	
 	/////////////////////////////////////////////////////////
-	// Methods
+	// Methods                                             //
 	/////////////////////////////////////////////////////////
 	/**
 	 * \brief Constructs an empty menu.
@@ -106,12 +106,12 @@ public:
 	/**
 	 * \brief Constructs an empty menu.
 	 * 
-	 * This constructor reads an XML file containing the arguments for the first 
+	 * This constructor reads a json file containing the arguments for the first 
 	 * constructor, extracts them, and calls the above constructor with them.
 	 * 
 	 * \param file		Path to the file containing menu arguments.
 	 */
-	Menu(const std::string& xmlfile);
+	Menu(const std::string& file);
 
 	/**
 	 * \brief Add an option to the menu.
@@ -161,10 +161,8 @@ public:
 	/**
 	 * \brief Change an option's colors.
 	 * 
-	 * The public version of an overloaded method.
-	 * 
-	 * It finds the option based on its ID. If no options in the menu has \a id, 
-	 * this method generates an assertion error.
+	 * This method finds the option based on its ID. If no options in the menu 
+	 * has \a id, this method generates an assertion error.
 	 * 
 	 * \param key		ID of the menu option to change the colors of.
 	 * \param colors	New color set.
@@ -173,7 +171,7 @@ public:
 	 * multiples and combinations of \property add, \property remove, \property 
 	 * setOptionText, \property setOptionColor, etc..
 	 */
-	Menu& setOptionColor(const T id, const sf_color3 color);
+	Menu& changeOptionColor(const T id, const sf_color3 color);
 
 	/**
 	 * \brief Checks if the menu is empty.
@@ -230,12 +228,12 @@ public:
 
 private:
 	/////////////////////////////////////////////////////////
-	// Additional types
+	// Additional types                                    //
 	/////////////////////////////////////////////////////////
 	/**
 	 * \brief Struct containing all the arguments needed to construct a Menu
 	 * object, listed in order of the parameters of the first constructor. The 
-	 * second constructor creates one from reading the XML file.
+	 * second constructor creates one from reading the json file.
 	 */
 	using ctor_args = struct ctor_args {
 		sf::Vector2f pos;
@@ -252,26 +250,15 @@ private:
 		std::string font_file;
 	
 		/**
-		 * \brief Extract the color from an XML element that contains RGB 
+		 * \brief Extract the color from a json element that contains RGB 
 		 * attributes.
 		 * 
-		 * \param color 		An XML element node containing attributes named 
+		 * \param color 		An json element node containing attributes named 
 		 * 						"r", "g", "b", and "a", each paired with a value.
 		 * 
 		 * \return An SFML Color object
 		 */
-		sf::Color getXMLColor(const pugi::xml_node& color);
-
-		/**
-		 * \brief Extract the horizontal and vertical margins from an XML that
-		 * contains these attributes.
-		 * 
-		 * \param margins 	An XML element node containing attributes named 
-		 * 						"hz" and "vt", each paired with a value.
-		 * 
-		 * \return Horizontal and vertical margins, in that order.
-		 */
-		sf::Vector2f getXMLMargins(const pugi::xml_node& margins);
+		sf::Color makeColor(const std::vector<int>& rgba);
 	};
 
 	/**
@@ -289,7 +276,7 @@ private:
 	};
 
 	/////////////////////////////////////////////////////////
-	// Variables
+	// Variables                                           //
 	/////////////////////////////////////////////////////////
 	///< Whether all menu options' text should be center-aligned horizontally.
 	bool m_align_center;
@@ -343,14 +330,14 @@ private:
 	sf::Font m_font;
 
 	/////////////////////////////////////////////////////////
-	// Methods
+	// Methods                                             //
 	/////////////////////////////////////////////////////////
 	/**
 	 * \brief Construct an empty menu from a struct containing arguments for the
 	 * first public constructor.
 	 * 
-	 * This constructor works in tandem with \property parseXML to implement 
-	 * the second public constructor, which takes in an XML file containing the 
+	 * This constructor works in tandem with \property parseFile to implement 
+	 * the second public constructor, which takes in a json file containing the 
 	 * menu specifications.
 	 */
 	Menu(ctor_args args);
@@ -386,8 +373,6 @@ private:
 	/**
 	 * \brief Change an option's colors
 	 * 
-	 * A private version of the overloaded method.
-	 * 
 	 * If \a idx is outside the range of menu options, this method generates an
 	 * assertion error.
 	 * 
@@ -399,8 +384,6 @@ private:
 
 	/**
 	 * \brief Change an option's colors.
-	 * 
-	 * A private version of the overloaded method.
 	 * 
 	 * This is a wrapper around the above version. It takes the row and column 
 	 * indices of the menu option to change the colors of and translate that to 
@@ -454,19 +437,19 @@ private:
 	auto find(const T id) -> decltype(m_options.begin());
 
 	/**
-	 * \brief Parse an XML file that contains arguments for constructing a Menu 
+	 * \brief Parse a json file that contains arguments for constructing a Menu 
 	 * object.
 	 * 
 	 * This method works in tandem with the private constructor to implement the 
-	 * second public constructor, which takes in an XML file.
+	 * second public constructor, which takes in a json file.
 	 * 
-	 * It generates an assertion error if the XML parsing fails for any 
+	 * It generates an assertion error if the json parsing fails for any 
 	 * reason.
 	 * 
 	 * \return Struct containing arguments needed by the first public 
 	 * constructor.
 	 */
-	ctor_args parseXML(const std::string& xmlfile);
+	ctor_args parseFile(const std::string& file);
 };
 
 }

@@ -33,7 +33,7 @@ constexpr std::string_view type_name()
 }
 
 #ifdef _DEBUG
-#define LOG_DEBUG(x)	(std::clog << x << std::endl)
+#define LOG_DEBUG(x)	(std::cout << x << std::endl)
 #else
 #define LOG_DEBUG(x)
 #endif

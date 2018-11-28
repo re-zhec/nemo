@@ -8,8 +8,8 @@ namespace rp
 
 PauseScreen::PauseScreen(std::shared_ptr<Inventory> inv)
 	: m_inv(std::move(inv))
-	, m_main_menu("xml/menu/pause.xml")
-	, m_item_menu("xml/menu/inventory.xml")
+	, m_main_menu("json/menu/pause.json")
+	, m_item_menu("json/menu/inventory.json")
 {
 	m_main_menu
 		.add(MainMenuKey::Party, "Party")

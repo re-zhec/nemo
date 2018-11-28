@@ -61,7 +61,7 @@ public:
 	 */
 	[[nodiscard]]
 	std::optional< std::pair<std::shared_ptr<Item>, size_t> >
-	remove(const ItemID id, const size_t which);
+	remove(const int id, const size_t which);
 
 	/**
 	 * \brief Remove all of this item from the inventory.
@@ -73,7 +73,7 @@ public:
 	 * 
 	 * \param id		ID of the item to remove all of.
 	 */
-	void remove(const ItemID id);
+	void remove(const int id);
 
 	/**
 	 * \brief Get the IDs, names, and quantity of all items currentlyin the 
@@ -85,7 +85,7 @@ public:
 	 * 	2. its name
 	 * 	3. its quantity
 	 */
-	std::vector<std::tuple<ItemID, std::string, size_t>> 
+	std::vector<std::tuple<int, std::string, size_t>> 
 	peek() const;
 
 private:
@@ -100,7 +100,7 @@ private:
 	//		Key: Item's ID
 	//		Value: Objects for that item
 	std::unordered_map< 
-		ItemID, 
+		int, 
 		std::vector<std::shared_ptr<Item>> 
 	> m_storage;
 
@@ -110,7 +110,7 @@ private:
 	// currently in the inventory is maintained, ordered from least recently 
 	// found to most recently. This order is opposite of that returned by  
 	// \property peek. 
-	std::vector<ItemID> m_order;
+	std::vector<int> m_order;
 
 	/**
 	 * \brief Search for this item in the inventory.
@@ -129,7 +129,7 @@ private:
 	 * 	2. A non-const iterator to all copies of the found item from storage.
 	 * 		If there is no match, \var m_storage.end() is returned.
 	 */
-	auto find(const ItemID id) 
+	auto find(const int id) 
 		-> decltype(std::make_pair(m_order.begin(), m_storage.begin()));
 };
 

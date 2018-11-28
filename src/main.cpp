@@ -3,7 +3,6 @@
 #include "../include/StartScreen.hpp"
 #include "../include/PauseScreen.hpp"
 #include "../include/Menu.hpp"
-#include "../include/Weapon.hpp"
 #include "../include/Item.hpp"
 #include "../include/logger.hpp"
 
@@ -15,10 +14,10 @@ int main()
 	LOG_DEBUG("Window opened");
 
 	rp::Inventory inv(1000);
-	std::shared_ptr<rp::Item> weap = std::make_shared<rp::Weapon>(rp::ItemID::Bolgano);
-	inv.add(weap);
-	inv.add(weap);
-	inv.add(weap);
+	// std::shared_ptr<rp::Item> weap = std::make_shared<rp::Item>(rp::int::Bolgano);
+	// inv.add(weap);
+	// inv.add(weap);
+	// inv.add(weap);
 
 	rp::GameState state = rp::GameState::Start;
 	rp::StartScreen start;

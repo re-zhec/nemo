@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <fstream>
 #include <boost/assert.hpp>
 #include "../include/Menu.hpp"
+#include "../include/logger.hpp"
 
 namespace rp
 {
@@ -149,7 +151,7 @@ Menu<T>::Menu(
 		// left to right, down across rows.
 		const auto [r_i, c_i] = translateToRowColumn(i, m_cols);
 		cell.setPosition(
-			  dim 
+			  pos 
 			+ inner_margins 
 			+ sf::Vector2f(option_dim.x * c_i, option_dim.y * r_i)
 		);
@@ -167,8 +169,8 @@ Menu<T>::Menu(
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-Menu<T>::Menu(const std::string& xmlfile)
-	: Menu(parseXML(xmlfile))
+Menu<T>::Menu(const std::string& file)
+	: Menu(parseFile(file))
 {
 }
 
@@ -259,7 +261,7 @@ Menu<T>::setOptionText(const T id, const std::string& txt)
 
 template <typename T>
 Menu<T>& 
-Menu<T>::setOptionColor(const T id, const sf_color3 color)
+Menu<T>::changeOptionColor(const T id, const sf_color3 color)
 {
 	// Search for the option.
 	const auto it = find(id);
@@ -683,67 +685,120 @@ Menu<T>::find(const T id) -> decltype(m_options.begin())
 
 template <typename T>
 typename Menu<T>::ctor_args 
-Menu<T>::parseXML(const std::string& xmlfile)
+Menu<T>::parseFile(const std::string& file)
 {
-	// Load XML document.
-	pugi::xml_document doc;
-	BOOST_VERIFY(
-		doc.load_file(xmlfile.c_str())
-			.status == pugi::status_ok
-	);
+	using json = nlohmann::json;
+	
+	// Load json file.
+	std::ifstream ifs(file);
+	BOOST_ASSERT(ifs.is_open());
+	json js;
+	ifs >> js;
 
 	// Populate constructor arguments struct
 	ctor_args args = {};
-	const auto menu = doc.child("menu");
+	constexpr auto position = "position";
+	constexpr auto dimensions = "dimensions";
+	constexpr auto margins = "margins";
+	constexpr auto horizontal = "horizontal";
+	constexpr auto vertical = "vertical";
+	constexpr auto options = "options";
+	constexpr auto cursor = "cursor";
+	constexpr auto box = "box";
+	constexpr auto colors = "colors";
+	constexpr auto text = "text";
+	constexpr auto background = "background";
+	constexpr auto border = "border";
 
-	const auto pos = menu.child("pos");
-	args.pos = {
-		pos.attribute("x").as_float(), 
-		pos.attribute("y").as_float()
-	};
+	try {
+		args.pos = {
+			js.at(position).at("x"), 
+			js.at(position).at("y")
+		};
+	}
+	catch (json::out_of_range& e) {
+		LOG_DEBUG("[" << position << "]: " << e.what() << ".");
+	}
+		
+	try {
+		args.dim = { 
+			js.at(dimensions).at("width"), 
+			js.at(dimensions).at("height") 
+		};
+	}
+	catch (json::out_of_range& e) {
+		LOG_DEBUG("[" << dimensions << "]: " << e.what() << ".");
+	}
+		
+	try {
+		args.outer_margins = {
+			js.at(box).at(margins).at(horizontal),
+			js.at(box).at(margins).at(vertical)
+		};
+	}
+	catch (json::out_of_range& e) {
+		LOG_DEBUG("[" << box << "][" << margins << "]: " << e.what() << ".");
+	}
 
-	const auto dim = menu.child("dim");
-	args.dim = {
-		dim.attribute("width").as_float(),
-		dim.attribute("height").as_float()
-	};
+	try {
+		args.inner_margins = {
+			js.at(options).at(margins).at(horizontal),
+			js.at(options).at(margins).at(vertical)
+		};
+	}
+	catch (json::out_of_range& e) {
+		LOG_DEBUG("[" << options << "][" << margins << "]: " << e.what() << ".");
+	}
+		
+	try {
+		args.rows         = js.at(options).at("rows");
+		args.cols         = js.at(options).at("columns");
+		args.align_center = js.at(options).at("center");
+		args.char_sz      = js.at(options).at("size");
+	}
+	catch (json::out_of_range& e) {
+		LOG_DEBUG("[" << options << "]: " << e.what() << ".");
+	}
 
-	const auto margins = menu.child("margin");
-	args.outer_margins = args.getXMLMargins(margins.child("outer"));
-	args.inner_margins = args.getXMLMargins(margins.child("inner"));
-
-	const auto option = menu.child("option");
-	const auto view = option.child("view");
-	args.rows = view.attribute("rows").as_ullong();
-	args.cols = view.attribute("cols").as_ullong();
-
-	args.align_center = option.child("align").attribute("center").as_bool();
-	args.char_sz = option.child("char").attribute("size").as_ullong();
-
-	constexpr auto color = "color";
-	const auto option_color = option.child(color);
-	args.option_color = {
-		args.getXMLColor(option_color.child("text")),
-		args.getXMLColor(option_color.child("backgnd")),
-		args.getXMLColor(option_color.child("border"))
-	};
-
-	const auto cursor_color = menu.child("cursor").child(color);
-	args.cursor_color = {
-		args.getXMLColor(cursor_color.child("text")),
-		args.getXMLColor(cursor_color.child("backgnd")),
-		args.getXMLColor(cursor_color.child("border"))
-	};
-
-	const auto box_color = menu.child("box").child(color);
-	args.box_color = {
-		args.getXMLColor(box_color.child("backgnd")),
-		args.getXMLColor(box_color.child("border"))
-	};
-
-	const auto font = menu.child("font");
-	args.font_file = font.attribute("path").as_string();
+	try {
+		args.font_file = js.at("font");
+	}
+	catch (json::out_of_range& e) {
+		LOG_DEBUG("[font]: " << e.what() << ".");
+	}
 	
+	try {
+		args.option_color = {
+			args.makeColor(js.at(options).at(colors).at(text)),
+			args.makeColor(js.at(options).at(colors).at(background)),
+			args.makeColor(js.at(options).at(colors).at(border))
+		};
+	}
+	catch (json::out_of_range& e) {
+		LOG_DEBUG("[" << options << "][" << colors << "]: " << e.what() << ".");
+	}
+
+	try {
+		args.cursor_color = {
+			args.makeColor(js.at(cursor).at(colors).at(text)),
+			args.makeColor(js.at(cursor).at(colors).at(background)),
+			args.makeColor(js.at(cursor).at(colors).at(border))
+		};
+	}
+	catch (json::out_of_range& e) {
+		LOG_DEBUG("[" << cursor << "][" << colors << "]: " << e.what() << ".");
+	}
+
+	try {
+		args.box_color = {
+			args.makeColor(js.at(box).at(colors).at(background)),
+			args.makeColor(js.at(box).at(colors).at(border))
+		};
+	}
+	catch (json::out_of_range& e) {
+		LOG_DEBUG("[" << box << "][" << colors << "]: " << e.what() << ".");
+	}
+
 	return args;
 }
 
@@ -753,24 +808,13 @@ Menu<T>::parseXML(const std::string& xmlfile)
 
 template <typename T>
 sf::Color 
-Menu<T>::ctor_args::getXMLColor(const pugi::xml_node& color)
+Menu<T>::ctor_args::makeColor(const std::vector<int>& rgba)
 {
 	return {
-		static_cast<sf::Uint8>(color.attribute("r").as_uint()),
-		static_cast<sf::Uint8>(color.attribute("g").as_uint()),
-		static_cast<sf::Uint8>(color.attribute("b").as_uint()),
-		static_cast<sf::Uint8>(color.attribute("a").as_uint())
-	};
-}
-
-
-template <typename T>
-sf::Vector2f
-Menu<T>::ctor_args::getXMLMargins(const pugi::xml_node& margins)
-{
-	return {
-		margins.attribute("hz").as_float(),
-		margins.attribute("vt").as_float(),
+		static_cast<sf::Uint8>(rgba[0]),
+		static_cast<sf::Uint8>(rgba[1]),
+		static_cast<sf::Uint8>(rgba[2]),
+		static_cast<sf::Uint8>(rgba[3])
 	};
 }
 

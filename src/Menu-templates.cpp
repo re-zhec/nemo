@@ -15,6 +15,6 @@ namespace rp
 
 template class Menu<StartScreen::MainMenuKey>;
 template class Menu<PauseScreen::MainMenuKey>;
-template class Menu<ItemID>;
+template class Menu<int>;
 
 }
