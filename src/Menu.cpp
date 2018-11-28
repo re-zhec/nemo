@@ -243,7 +243,7 @@ Menu<T>::remove(const T id)
 
 template <typename T>
 Menu<T>& 
-Menu<T>::setOptionText(const T id, const std::string& txt)
+Menu<T>::changeOptionText(const T id, const std::string& txt)
 {
 	// Search for the option.
 	const auto it = find(id);

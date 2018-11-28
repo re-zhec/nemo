@@ -60,7 +60,7 @@ void StartScreen::Update(sf::RenderWindow& window, sf::Event& event)
 						selected.value_or(MainMenuKey::Default))
 					{
 						case MainMenuKey::Play:
-							m_main_menu.setOptionText(*selected, "Poop");
+							m_main_menu.changeOptionText(*selected, "Poop");
 							break;
 
 						case MainMenuKey::Continue:

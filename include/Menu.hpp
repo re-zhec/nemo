@@ -125,7 +125,7 @@ public:
 	 * 
 	 * \return A reference to the object itself. This allows for chaining 
 	 * multiples and combinations of \property add, \property remove, \property 
-	 * setOptionText, \property setOptionColor, etc..
+	 * changeOptionText, \property changeOptionColor, etc..
 	 */
 	Menu& add(const T id, const std::string& txt);
 
@@ -139,7 +139,7 @@ public:
 	 * 
 	 * \return A reference to the object itself. This allows for chaining 
 	 * multiples and combinations of \property add, \property remove, \property 
-	 * setOptionText, \property setOptionColor, etc..
+	 * changeOptionText, \property changeOptionColor, etc..
 	 */
 	Menu& remove(const T id);
 
@@ -154,9 +154,9 @@ public:
 	 * 
 	 * \return A reference to the object itself. This allows for chaining 
 	 * multiples and combinations of \property add, \property remove, \property 
-	 * setOptionText, \property setOptionColor, etc..
+	 * changeOptionText, \property changeOptionColor, etc..
 	 */
-	Menu& setOptionText(const T id, const std::string& txt);
+	Menu& changeOptionText(const T id, const std::string& txt);
 
 	/**
 	 * \brief Change an option's colors.
@@ -169,7 +169,7 @@ public:
 	 * 
 	 * \return A reference to the object itself. This allows for chaining 
 	 * multiples and combinations of \property add, \property remove, \property 
-	 * setOptionText, \property setOptionColor, etc..
+	 * changeOptionText, \property changeOptionColor, etc..
 	 */
 	Menu& changeOptionColor(const T id, const sf_color3 color);
 
