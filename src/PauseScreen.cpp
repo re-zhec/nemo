@@ -1,7 +1,6 @@
 #include "../include/PauseScreen.hpp"
 #include "../include/Menu.hpp"
 #include "../include/Item.hpp"
-#include "../include/logger.hpp"
 
 namespace rp
 {

@@ -1,7 +1,12 @@
 #pragma once
-#include <iostream>
+#include <string>
+// #include <boost/log/core.hpp>
+// #include <boost/log/trivial.hpp>
+// #include <boost/log/expressions.hpp>
+// #include <boost/log/utility/setup/console.hpp>
+// #include <boost/log/utility/setup/common_attributes.hpp>
 
-#define _DEBUG
+void initBoostLogging();
 
 template<typename T>
 std::ostream& operator<<(
@@ -31,9 +36,3 @@ constexpr std::string_view type_name()
     return string_view(p.data() + 84, p.size() - 84 - 7);
 #endif
 }
-
-#ifdef _DEBUG
-#define LOG_DEBUG(x)	(std::cout << x << std::endl)
-#else
-#define LOG_DEBUG(x)
-#endif

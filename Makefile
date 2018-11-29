@@ -21,21 +21,19 @@ LDLIBS += -lopengl32 -lwinmm -lgdi32 -lfreetype
 
 .PHONY: all clean
 
-all: $(EXEDIR) $(OBJDIR) $(EXE)
+all: data $(EXE)
+
+data:
+	mkdir -p $(EXEDIR)
+	mkdir -p $(OBJDIR)
+	cp -r font $(EXEDIR)
+	cp -r json $(EXEDIR)
 	
 clean:
 	rm -rf $(EXEDIR)
 	rm -rf $(OBJDIR)
 
-$(EXEDIR):
-	mkdir -p $(EXEDIR)
-
-$(OBJDIR):
-	mkdir -p $(OBJDIR)
-
 $(EXE): $(OBJ)
-	cp -r font $(EXEDIR)
-	cp -r json $(EXEDIR)
 	$(CXX) $^ $(LDFLAGS) $(LDLIBS) -o $@ 
 
 $(OBJ): $(OBJDIR)/%.o: $(SRCDIR)/%.cpp

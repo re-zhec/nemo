@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <fstream>
 #include <boost/assert.hpp>
+#include "../include/Logger.hpp"
 #include "../include/Menu.hpp"
-#include "../include/logger.hpp"
 
 namespace rp
 {
@@ -621,7 +621,7 @@ Menu<T>::drawPageRef(sf::RenderWindow& window) const
 	window.draw(atpage_box);
 
 	// For the color of the page number and navigation arrow indicators, use the 
-	// cursor's text color
+	// menu options' default text color
 	[[maybe_unused]] const auto [txt_color, UNUSED1_, UNUSED2_] = m_option_color;
 
 	// Draw the page numbers on the right half of the box.
@@ -735,7 +735,7 @@ Menu<T>::parseFile(const std::string& file)
 		args.cols         = js.at(options).at("columns");
 		args.align_center = js.at(options).at("center");
 		args.char_sz      = js.at(options).at("size");
-		args.font_file = js.at("font");
+		args.font_file		= js.at("font");
 
 		args.option_color = {
 			args.makeColor(js.at(options).at(colors).at(text)),
@@ -755,7 +755,7 @@ Menu<T>::parseFile(const std::string& file)
 		};
 	}
 	catch (json::out_of_range& e) {
-		LOG_DEBUG(e.what() << ". " << __FILE__ << ":" << __LINE__);
+		// BOOST_LOG_TRIVIAL(error) << file << " parsing failed. " << e.what();
 	}
 	return args;
 }

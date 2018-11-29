@@ -1,4 +1,4 @@
-#include "../include/logger.hpp"
+#include "../include/Logger.hpp"
 #include "../include/Menu.hpp"
 #include "../include/StartScreen.hpp"
 
@@ -29,32 +29,32 @@ void StartScreen::Update(sf::RenderWindow& window, sf::Event& event)
 			// key pressed
 			switch (event.key.code) {
 				case sf::Keyboard::Backspace:
-					LOG_DEBUG("backspace key pressed");
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed backspace key.";
 					// go back
 					break;
 
 				case sf::Keyboard::W:
-					LOG_DEBUG("'w' key pressed");
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed 'W' key.";
 					m_main_menu.moveUp();
 					break;
 				
 				case sf::Keyboard::S:
-					LOG_DEBUG("'s' key pressed");
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed 'S' key.";
 					m_main_menu.moveDown();
 					break;
 				
 				case sf::Keyboard::A:
-					LOG_DEBUG("'a' key pressed");
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed 'A' key.";
 					m_main_menu.moveLeft();
 					break;
 				
 				case sf::Keyboard::D:
-					LOG_DEBUG("'d' key pressed");
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed 'D' key.";
 					m_main_menu.moveRight();
 					break;
 				
 				case sf::Keyboard::Enter:
-					LOG_DEBUG("enter key pressed");
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed Enter key.";
 					
 					switch (const auto selected = m_main_menu.cursorAt();
 						selected.value_or(MainMenuKey::Default))

@@ -4,14 +4,16 @@
 #include "../include/PauseScreen.hpp"
 #include "../include/Menu.hpp"
 #include "../include/Item.hpp"
-#include "../include/logger.hpp"
+#include "../include/Logger.hpp"
 
 int main()
 {
+	initBoostLogging();
+
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Our Secret Base");
 	window.setFramerateLimit(30);
 	window.setKeyRepeatEnabled(false);
-	LOG_DEBUG("Window opened");
+	// BOOST_LOG_TRIVIAL(debug) << "Window opened.";
 
 	rp::Inventory inv(1000);
 	// std::shared_ptr<rp::Item> weap = std::make_shared<rp::Item>(rp::int::Bolgano);
@@ -36,18 +38,18 @@ int main()
 			// focus
 			if (event.type == sf::Event::LostFocus) {
 				// pause game
-				LOG_DEBUG("window lost focus");
+				// BOOST_LOG_TRIVIAL(debug) << "Window lost focus.";
 			}
 			
 			else if (event.type == sf::Event::GainedFocus) {
 				// resume game
-				LOG_DEBUG("window gained focus");
+				// BOOST_LOG_TRIVIAL(debug) << "Window gained focus.";
 			}
 
 			else if (event.type == sf::Event::Closed) {
 				// close window
 				window.close();
-				LOG_DEBUG("Window closed");
+				// BOOST_LOG_TRIVIAL(debug) << "Window closed.";
 			}
 			else {
 				switch (state)
@@ -56,7 +58,6 @@ int main()
 						start.Update(window, event);
 
 						if (start.IsFileLoaded()) {
-							LOG_DEBUG("pause screen");
 							state = rp::GameState::Pause;
 						}
 						break;
