@@ -1,8 +1,11 @@
+#include <iostream>
+#include <memory>
 #include <SFML/Graphics.hpp>
 
 #include "../include/GameState.hpp"
 #include "../include/StartState.hpp"
 #include "../include/Menu.hpp"
+#include "../include/MenuCommand.hpp"
 
 namespace rp
 {
@@ -12,9 +15,9 @@ namespace rp
 ////////////////////////////////////////////////////////////////////////////////
 
 StartState::StartState()
-	: m_main_menu("json/menus/start.json")
+	: main_menu_("json/menus/start.json")
 {
-	m_main_menu
+	main_menu_
 		.add(MainMenuKey::Play, "Play")
 		.add(MainMenuKey::Continue, "Continue")
 		.add(MainMenuKey::Settings, "Settings")
@@ -25,68 +28,40 @@ StartState::StartState()
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void StartState::handleEvent(const sf::Event& event) &
+void
+StartState::handleEvent(const sf::Event& event) &
 {
 	switch (event.type) 
 	{
 		case sf::Event::KeyPressed:
-			// key pressed
-			switch (event.key.code) {
-				case sf::Keyboard::Backspace:
-					// BOOST_LOG_TRIVIAL(debug) << "Pressed backspace key.";
-					// go back
-					break;
+			std::cout << event.key.code << std::endl;
 
-				case sf::Keyboard::W:
-					// BOOST_LOG_TRIVIAL(debug) << "Pressed 'W' key.";
-					m_main_menu.moveUp();
-					break;
-				
-				case sf::Keyboard::S:
-					// BOOST_LOG_TRIVIAL(debug) << "Pressed 'S' key.";
-					m_main_menu.moveDown();
-					break;
-				
-				case sf::Keyboard::A:
-					// BOOST_LOG_TRIVIAL(debug) << "Pressed 'A' key.";
-					m_main_menu.moveLeft();
-					break;
-				
-				case sf::Keyboard::D:
-					// BOOST_LOG_TRIVIAL(debug) << "Pressed 'D' key.";
-					m_main_menu.moveRight();
-					break;
-				
-				case sf::Keyboard::Enter:
-					// BOOST_LOG_TRIVIAL(debug) << "Pressed Enter key.";
-					
-					switch (const auto selected = m_main_menu.cursorAt();
-						selected.value_or(MainMenuKey::Default))
-					{
-						case MainMenuKey::Play:
-							m_main_menu.changeOptionText(*selected, "Poop");
-							break;
+			if (event.key.code == controls_.cancel_) {
+				// BOOST_LOG_TRIVIAL(debug) << "Pressed cancel key";
+			}
 
-						case MainMenuKey::Continue:
-							break;
+			if (event.key.code == controls_.up_) {
+				// BOOST_LOG_TRIVIAL(debug) << "Pressed up key";
+				command_ = std::make_unique<MenuUpCommand>();
+				command_->execute(main_menu_);
+			}
 
-						case MainMenuKey::Settings:
-							m_main_menu.remove(*selected);
-							break;
+			if (event.key.code == controls_.down_) {
+				// BOOST_LOG_TRIVIAL(debug) << "Pressed down key.";
+				command_ = std::make_unique<MenuDownCommand>();
+				command_->execute(main_menu_);
+			}
 
-						case MainMenuKey::Quit:
-							break;
-						
-						default:
-							m_main_menu.remove(*selected);
-							break;
-					}
-						
-					// confirm selection
-					break;
-				
-				default:
-					break;
+			if (event.key.code == controls_.left_) {
+				// BOOST_LOG_TRIVIAL(debug) << "Pressed left key.";
+				command_ = std::make_unique<MenuLeftCommand>();
+				command_->execute(main_menu_);
+			}
+
+			if (event.key.code == controls_.right_) {
+				// BOOST_LOG_TRIVIAL(debug) << "Pressed left key.";
+				command_ = std::make_unique<MenuRightCommand>();
+				command_->execute(main_menu_);
 			}
 			break;
 		
@@ -98,7 +73,7 @@ void StartState::handleEvent(const sf::Event& event) &
 void StartState::update(sf::RenderWindow& window) &
 {
 	window.clear(sf::Color::White);
-	m_main_menu.draw(window);
+	main_menu_.draw(window);
 	window.display();
 }
 

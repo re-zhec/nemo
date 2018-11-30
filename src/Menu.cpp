@@ -731,7 +731,7 @@ Menu::parseFile(const std::string& file)
 			args.makeColor(js.at(box).at(colors).at(border))
 		};
 	}
-	catch (nlohmann::json::out_of_range& e) {
+	catch (const nlohmann::json::out_of_range& e) {
 		// BOOST_LOG_TRIVIAL(error) << file << " parsing failed. " << e.what();
 	}
 	return args;

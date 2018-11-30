@@ -1,13 +1,15 @@
 #pragma once
+#include <memory>
 #include <SFML/Window.hpp>
-#include "Menu.hpp"
 
 namespace rp
 {
 
+class Menu;
+
 class MenuCommand
 {
-public:	
+public:
 	virtual void execute(Menu& menu) = 0;
 };
 

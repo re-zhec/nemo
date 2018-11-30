@@ -12,8 +12,8 @@ namespace rp
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace {
-	// If you want to change a key name or the path of the key controls json 
-	// file, then change the literals below.
+	// If you want to change a key name, the path of the key controls json 
+	// file, or the indentation, then change the literals below.
 	constexpr auto key_up     = "up";
 	constexpr auto key_down   = "down";
 	constexpr auto key_left   = "left";
@@ -21,9 +21,9 @@ namespace {
 	constexpr auto key_select = "select";
 	constexpr auto key_cancel = "cancel";
 	constexpr auto key_pause  = "pause";
-	
+
 	constexpr auto path = "json/settings/controls.json";
-	constexpr auto width = 4;
+	constexpr auto indent = 4;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ KeyControls::save() const
 
 	// Save to json file.
 	std::ofstream ofs(path);
-	ofs << std::setw(width) << js << std::endl;
+	ofs << std::setw(indent) << js << std::endl;	
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,26 +73,35 @@ KeyControls::save() const
 void
 KeyControls::load()
 {
-	// Load json file.
-	std::ifstream ifs(path);
+	try {
+		std::ifstream ifs(path);
+		ifs.exceptions(
+			// Handle different exceptions as 'file not found', 'permission 
+			// denied'.
+			ifs.exceptions()
+			| std::ios_base::failbit
+			| std::ios_base::badbit
+		);
 
-	if (ifs.fail()) {
-		// Fail to read it. Set to default settings.
-		set();
-	}
-	else {
+		// Read json file.
 		nlohmann::json js;
 		ifs >> js;
 
 		set(
-			Up     { js[key_up]     }, 
-			Down   { js[key_down]   }, 
-			Left   { js[key_left]   },
-			Right  { js[key_right]  },
-			Select { js[key_select] },
-			Cancel { js[key_cancel] },
-			Pause  { js[key_pause]  }
+			Up     { js.at(key_up)     }, 
+			Down   { js.at(key_down)   }, 
+			Left   { js.at(key_left)   },
+			Right  { js.at(key_right)  },
+			Select { js.at(key_select) },
+			Cancel { js.at(key_cancel) },
+			Pause  { js.at(key_pause)  }
 		);
+	}
+	catch (const std::ios_base::failure& e) {
+		set();
+	}
+	catch (const nlohmann::json::out_of_range& e) {
+		set();
 	}
 }
 

@@ -1,8 +1,9 @@
 #pragma once
-
+#include <memory>
 #include <SFML/Graphics.hpp>
 
 #include "GameState.hpp"
+#include "MenuCommand.hpp"
 #include "Menu.hpp"
 
 namespace rp
@@ -24,7 +25,8 @@ private:
 		Default
 	};
 
-	Menu m_main_menu;
+	Menu main_menu_;
+	std::unique_ptr<MenuCommand> command_;
 };
 
 }
