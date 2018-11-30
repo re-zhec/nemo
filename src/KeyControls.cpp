@@ -77,13 +77,12 @@ KeyControls::load()
 		std::ifstream ifs(path);
 		ifs.exceptions(
 			// Handle different exceptions as 'file not found', 'permission 
-			// denied'.
+			// denied'. Refer to https://github.com/nlohmann/json.
 			ifs.exceptions()
 			| std::ios_base::failbit
 			| std::ios_base::badbit
 		);
 
-		// Read json file.
 		nlohmann::json js;
 		ifs >> js;
 
