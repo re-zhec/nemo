@@ -12,6 +12,8 @@ namespace rp
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace {
+	// If you want to change a key name or the path of the key controls json 
+	// file, then change the literals below.
 	constexpr auto key_up     = "up";
 	constexpr auto key_down   = "down";
 	constexpr auto key_left   = "left";
@@ -19,8 +21,9 @@ namespace {
 	constexpr auto key_select = "select";
 	constexpr auto key_cancel = "cancel";
 	constexpr auto key_pause  = "pause";
-
+	
 	constexpr auto path = "json/settings/controls.json";
+	constexpr auto width = 4;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +63,7 @@ KeyControls::save() const
 
 	// Save to json file.
 	std::ofstream ofs(path);
-	ofs << std::setw(4) << js << std::endl;
+	ofs << std::setw(width) << js << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
