@@ -1,9 +1,8 @@
+#include <memory>
 #include <SFML/Graphics.hpp>
-#include "../include/Game.hpp"
-#include "../include/StartScreen.hpp"
-#include "../include/PauseScreen.hpp"
-#include "../include/Menu.hpp"
-#include "../include/Item.hpp"
+
+#include "../include/GameState.hpp"
+#include "../include/StartState.hpp"
 #include "../include/Logger.hpp"
 
 int main()
@@ -15,15 +14,7 @@ int main()
 	window.setKeyRepeatEnabled(false);
 	// BOOST_LOG_TRIVIAL(debug) << "Window opened.";
 
-	rp::Inventory inv(1000);
-	// std::shared_ptr<rp::Item> weap = std::make_shared<rp::Item>(rp::int::Bolgano);
-	// inv.add(weap);
-	// inv.add(weap);
-	// inv.add(weap);
-
-	rp::GameState state = rp::GameState::Start;
-	rp::StartScreen start;
-	rp::PauseScreen pause(std::make_shared<rp::Inventory>(inv));
+	std::unique_ptr<rp::GameState> state = std::make_unique<rp::StartState>();
 
 	// run the program as long as window is opened
 	while (window.isOpen())
@@ -52,34 +43,11 @@ int main()
 				// BOOST_LOG_TRIVIAL(debug) << "Window closed.";
 			}
 			else {
-				switch (state)
-				{
-					case rp::GameState::Start:
-						start.Update(window, event);
-
-						if (start.IsFileLoaded()) {
-							state = rp::GameState::Pause;
-						}
-						break;
-
-					case rp::GameState::Pause:
-						pause.Update(window, event);
-						break;
-
-					case rp::GameState::WorldMap:
-						window.close();
-						break;
-
-					case rp::GameState::LoadSave:
-						break;
-
-					default:
-						break;
-				}
+				state->handleEvent(event);
 			}
 		}
 
-		window.display();
+		state->update(window);
 	}
 
 	return 0;

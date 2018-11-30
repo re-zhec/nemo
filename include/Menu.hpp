@@ -4,7 +4,6 @@
 #include <utility>
 #include <optional>
 #include <SFML/Graphics.hpp>
-#include <nlohmann/json.hpp>
 
 namespace rp
 {
@@ -15,12 +14,7 @@ namespace rp
  * Calling the constructor creates an empty menu. The client must add options 
  * to the menu via \property add. The menu isn't displayed on the render window
  * until \property draw is called.
- * 
- * Menu options's IDs are templatized. This design is to help with compiler 
- * warnings/errors if the client accidentally two options from two different 
- * menus. IDs can be scoped enums, classes with a defined == operator, etc..
  */
-template <typename T> 
 class Menu
 {
 public:
@@ -127,7 +121,7 @@ public:
 	 * multiples and combinations of \property add, \property remove, \property 
 	 * changeOptionText, \property changeOptionColor, etc..
 	 */
-	Menu& add(const T id, const std::string& txt);
+	Menu& add(const int id, const std::string& txt);
 
 	/**
 	 * \brief Remove an option from the menu.
@@ -141,7 +135,7 @@ public:
 	 * multiples and combinations of \property add, \property remove, \property 
 	 * changeOptionText, \property changeOptionColor, etc..
 	 */
-	Menu& remove(const T id);
+	Menu& remove(const int id);
 
 	/**
 	 * \brief Change an option's text
@@ -156,7 +150,7 @@ public:
 	 * multiples and combinations of \property add, \property remove, \property 
 	 * changeOptionText, \property changeOptionColor, etc..
 	 */
-	Menu& changeOptionText(const T id, const std::string& txt);
+	Menu& changeOptionText(const int id, const std::string& txt);
 
 	/**
 	 * \brief Change an option's colors.
@@ -171,7 +165,7 @@ public:
 	 * multiples and combinations of \property add, \property remove, \property 
 	 * changeOptionText, \property changeOptionColor, etc..
 	 */
-	Menu& changeOptionColor(const T id, const sf_color3 color);
+	Menu& changeOptionColor(const int id, const sf_color3 color);
 
 	/**
 	 * \brief Checks if the menu is empty.
@@ -224,7 +218,7 @@ public:
 	 * \return The ID of the menu option that the cursor is on, or nothing 
 	 * if the menu is empty.
 	 */
-	std::optional<T> cursorAt() const;
+	std::optional<int> cursorAt() const;
 
 private:
 	/////////////////////////////////////////////////////////
@@ -297,7 +291,7 @@ private:
 	//			a. text color.
 	//			b. background color.
 	//			c. border color.
-	std::vector<std::tuple<T, sf::Text, sf_color3>> m_options;
+	std::vector<std::tuple<int, sf::Text, sf_color3>> m_options;
 
 	///< Default colors of each menu option other than the one the cursor is
 	// over, in this order:
@@ -434,7 +428,7 @@ private:
 	 * \return Non-const iterator to the menu option found. If there is no match, 
 	 * \var m_options.end() is returned.
 	 */
-	auto find(const T id) -> decltype(m_options.begin());
+	auto find(const int id) -> decltype(m_options.begin());
 
 	/**
 	 * \brief Parse a json file that contains arguments for constructing a Menu 

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <fstream>
 #include <boost/assert.hpp>
+#include <nlohmann/json.hpp>
 #include "../include/Logger.hpp"
 #include "../include/Menu.hpp"
 
@@ -76,8 +77,7 @@ namespace {
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T> 
-Menu<T>::Menu(
+Menu::Menu(
 	const sf::Vector2f pos,
 	const sf::Vector2f dim,
 	const size_t rows, 
@@ -168,8 +168,7 @@ Menu<T>::Menu(
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-Menu<T>::Menu(const std::string& file)
+Menu::Menu(const std::string& file)
 	: Menu(parseFile(file))
 {
 }
@@ -178,9 +177,8 @@ Menu<T>::Menu(const std::string& file)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-Menu<T>& 
-Menu<T>::add(const T id, const std::string& txt)
+Menu& 
+Menu::add(const int id, const std::string& txt)
 {
 	// Make sure there is no other menu option that has the new ID.
 	const auto it = find(id);
@@ -203,9 +201,8 @@ Menu<T>::add(const T id, const std::string& txt)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-Menu<T>& 
-Menu<T>::remove(const T id)
+Menu& 
+Menu::remove(const int id)
 {
 	// Search for the option.
 	auto it = find(id);
@@ -241,9 +238,8 @@ Menu<T>::remove(const T id)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-Menu<T>& 
-Menu<T>::changeOptionText(const T id, const std::string& txt)
+Menu& 
+Menu::changeOptionText(const int id, const std::string& txt)
 {
 	// Search for the option.
 	const auto it = find(id);
@@ -259,9 +255,8 @@ Menu<T>::changeOptionText(const T id, const std::string& txt)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-Menu<T>& 
-Menu<T>::changeOptionColor(const T id, const sf_color3 color)
+Menu& 
+Menu::changeOptionColor(const int id, const sf_color3 color)
 {
 	// Search for the option.
 	const auto it = find(id);
@@ -276,9 +271,8 @@ Menu<T>::changeOptionColor(const T id, const sf_color3 color)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 bool 
-Menu<T>::empty() const noexcept
+Menu::empty() const noexcept
 {
 	return m_options.empty();
 }
@@ -287,9 +281,8 @@ Menu<T>::empty() const noexcept
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::moveUp()
+Menu::moveUp()
 {
 	if ([[maybe_unused]] const auto 
 		[last_r, UNUSED_] = translateToRowColumn(m_options.size() - 1, m_cols);
@@ -310,9 +303,8 @@ Menu<T>::moveUp()
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::moveDown()
+Menu::moveDown()
 {
 	if ([[maybe_unused]] const auto 
 		[last_r, UNUSED_] = translateToRowColumn(m_options.size() - 1, m_cols);
@@ -331,9 +323,8 @@ Menu<T>::moveDown()
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::moveRight()
+Menu::moveRight()
 {
 	// move() checks that the menu isn't empty, so no need to deal with that 
 	// here.
@@ -352,9 +343,8 @@ Menu<T>::moveRight()
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::moveLeft()
+Menu::moveLeft()
 {
 	// move() checks that the menu isn't empty.
 	if (m_cols == 1) {
@@ -370,9 +360,8 @@ Menu<T>::moveLeft()
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::draw(sf::RenderWindow& window)
+Menu::draw(sf::RenderWindow& window)
 {
 	// Draw the menu box.
 	window.draw(m_box);
@@ -406,9 +395,8 @@ Menu<T>::draw(sf::RenderWindow& window)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-std::optional<T> 
-Menu<T>::cursorAt() const
+std::optional<int>
+Menu::cursorAt() const
 {
 	if (m_options.empty()) {
 		// Empty menu.
@@ -424,8 +412,7 @@ Menu<T>::cursorAt() const
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-Menu<T>::Menu(ctor_args args)
+Menu::Menu(ctor_args args)
 	: Menu(
 		args.pos,
 		args.dim,
@@ -447,9 +434,8 @@ Menu<T>::Menu(ctor_args args)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::presetTextPosition(const size_t idx)
+Menu::presetTextPosition(const size_t idx)
 {
 	BOOST_ASSERT(idx < m_options.size());
 
@@ -476,9 +462,8 @@ Menu<T>::presetTextPosition(const size_t idx)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::move(const Direction dir)
+Menu::move(const Direction dir)
 {
 	if (m_options.empty()) {
 		// No menu options => no cursor => no movement.
@@ -532,9 +517,8 @@ Menu<T>::move(const Direction dir)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::setOptionColor(const size_t idx, const sf_color3 color)
+Menu::setOptionColor(const size_t idx, const sf_color3 color)
 {
 	BOOST_ASSERT(idx < m_options.size());
 	[[maybe_unused]] auto& [UNUSED0_, UNUSED1_, cur_color] = m_options[idx];
@@ -545,9 +529,8 @@ Menu<T>::setOptionColor(const size_t idx, const sf_color3 color)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::setOptionColor(const size_t r, const size_t c, 
+Menu::setOptionColor(const size_t r, const size_t c, 
 	const sf_color3 color)
 {
 	const auto idx = translateTo1DIndex(r, c, m_cols);
@@ -558,9 +541,8 @@ Menu<T>::setOptionColor(const size_t r, const size_t c,
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::drawOption(const size_t idx, sf::RenderWindow& window)
+Menu::drawOption(const size_t idx, sf::RenderWindow& window)
 {
 	BOOST_ASSERT(idx < m_options.size());
 
@@ -590,9 +572,8 @@ Menu<T>::drawOption(const size_t idx, sf::RenderWindow& window)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 void 
-Menu<T>::drawPageRef(sf::RenderWindow& window) const
+Menu::drawPageRef(sf::RenderWindow& window) const
 {
 	// Get the page number the cursor is on as well as the total number of pages 
 	// of options the menu has.
@@ -665,9 +646,8 @@ Menu<T>::drawPageRef(sf::RenderWindow& window) const
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 auto 
-Menu<T>::find(const T id) -> decltype(m_options.begin())
+Menu::find(const int id) -> decltype(m_options.begin())
 {
 	auto it = std::find_if(m_options.begin(), m_options.end(),
 		[id](const auto& option) {
@@ -683,16 +663,13 @@ Menu<T>::find(const T id) -> decltype(m_options.begin())
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-typename Menu<T>::ctor_args 
-Menu<T>::parseFile(const std::string& file)
-{
-	using json = nlohmann::json;
-	
+typename Menu::ctor_args 
+Menu::parseFile(const std::string& file)
+{	
 	// Load json file.
 	std::ifstream ifs(file);
 	BOOST_ASSERT(ifs.is_open());
-	json js;
+	nlohmann::json js;
 	ifs >> js;
 
 	// Populate constructor arguments struct
@@ -754,7 +731,7 @@ Menu<T>::parseFile(const std::string& file)
 			args.makeColor(js.at(box).at(colors).at(border))
 		};
 	}
-	catch (json::out_of_range& e) {
+	catch (nlohmann::json::out_of_range& e) {
 		// BOOST_LOG_TRIVIAL(error) << file << " parsing failed. " << e.what();
 	}
 	return args;
@@ -764,9 +741,8 @@ Menu<T>::parseFile(const std::string& file)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
 sf::Color 
-Menu<T>::ctor_args::makeColor(const std::vector<int>& rgba)
+Menu::ctor_args::makeColor(const std::vector<int>& rgba)
 {
 	return {
 		static_cast<sf::Uint8>(rgba[0]),

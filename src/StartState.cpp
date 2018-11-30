@@ -1,27 +1,31 @@
-#include "../include/Logger.hpp"
+#include <SFML/Graphics.hpp>
+
+#include "../include/GameState.hpp"
+#include "../include/StartState.hpp"
 #include "../include/Menu.hpp"
-#include "../include/StartScreen.hpp"
 
 namespace rp
 {
 
-StartScreen::StartScreen()
-	: m_main_menu("json/menu/start.json")
-	// : m_main_menu({40.f, 40.f}, {600.f, 150.f}, 2, 4)
-	, m_inv_menu({40.f, 40.f}, {600.f, 150.f}, 2, 4)
-	, m_cfg_menu({0.f, 0.f}, {1280.f, 720.f}, 4, 8)
-	, m_file(0)
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+StartState::StartState()
+	: m_main_menu("json/menus/start.json")
 {
 	m_main_menu
 		.add(MainMenuKey::Play, "Play")
 		.add(MainMenuKey::Continue, "Continue")
 		.add(MainMenuKey::Settings, "Settings")
 		.add(MainMenuKey::Quit, "Quit");
-
-	m_inv_menu.add(MainMenuKey::Play, "Play");
 }
 
-void StartScreen::Update(sf::RenderWindow& window, sf::Event& event)
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+void StartState::handleEvent(const sf::Event& event) &
 {
 	switch (event.type) 
 	{
@@ -64,7 +68,6 @@ void StartScreen::Update(sf::RenderWindow& window, sf::Event& event)
 							break;
 
 						case MainMenuKey::Continue:
-							m_file = 1;
 							break;
 
 						case MainMenuKey::Settings:
@@ -72,7 +75,6 @@ void StartScreen::Update(sf::RenderWindow& window, sf::Event& event)
 							break;
 
 						case MainMenuKey::Quit:
-							window.close();
 							break;
 						
 						default:
@@ -91,14 +93,13 @@ void StartScreen::Update(sf::RenderWindow& window, sf::Event& event)
 		default:
 			break;
 	}
-
-	window.clear(sf::Color::White);
-	m_main_menu.draw(window);
 }
 
-bool StartScreen::IsFileLoaded() const
+void StartState::update(sf::RenderWindow& window) &
 {
-	return m_file != 0;
+	window.clear(sf::Color::White);
+	m_main_menu.draw(window);
+	window.display();
 }
 
 }

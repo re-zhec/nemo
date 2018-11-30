@@ -1,14 +1,16 @@
-#include "../include/PauseScreen.hpp"
+#include "../include/GameState.hpp"
+#include "../include/PauseState.hpp"
+#include "../include/Inventory.hpp"
 #include "../include/Menu.hpp"
 #include "../include/Item.hpp"
 
 namespace rp
 {
 
-PauseScreen::PauseScreen(std::shared_ptr<Inventory> inv)
+PauseState::PauseState(std::shared_ptr<Inventory> inv)
 	: m_inv(std::move(inv))
-	, m_main_menu("json/menu/pause.json")
-	, m_item_menu("json/menu/inventory.json")
+	, m_main_menu("json/menus/pause.json")
+	, m_item_menu("json/menus/inventory.json")
 {
 	m_main_menu
 		.add(MainMenuKey::Party, "Party")
@@ -24,7 +26,7 @@ PauseScreen::PauseScreen(std::shared_ptr<Inventory> inv)
 }
 
 void 
-PauseScreen::Update(sf::RenderWindow& window, sf::Event& event)
+PauseState::handleEvent(const sf::Event& event) &
 {
 	switch (event.type) {
 		case sf::Event::KeyPressed:
@@ -51,7 +53,11 @@ PauseScreen::Update(sf::RenderWindow& window, sf::Event& event)
 		default:
 			break;
 	}
+}
 
+void 
+PauseState::update(sf::RenderWindow& window) &
+{
 	window.clear(sf::Color::White);
 	m_main_menu.draw(window);
 
