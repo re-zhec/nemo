@@ -5,7 +5,7 @@
 #include "item/Inventory.hpp"
 #include "menu/Menu.hpp"
 
-namespace rp
+namespace sb
 {
 
 PauseState::PauseState(std::shared_ptr<Inventory> inv)

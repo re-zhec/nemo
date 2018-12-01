@@ -14,7 +14,7 @@ int main()
 	window.setKeyRepeatEnabled(false);
 	// BOOST_LOG_TRIVIAL(debug) << "Window opened.";
 
-	std::unique_ptr<rp::GameState> state = std::make_unique<rp::StartState>();
+	std::unique_ptr<sb::GameState> state = std::make_unique<sb::StartState>();
 
 	// run the program as long as window is opened
 	while (window.isOpen())

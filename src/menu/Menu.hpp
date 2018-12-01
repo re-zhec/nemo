@@ -6,7 +6,10 @@
 #include <optional>
 #include <SFML/Graphics.hpp>
 
-namespace rp
+#include "utility/type/defs.hpp"
+#include "utility/adaptor/RowColumnAdaptor.hpp"
+
+namespace sb
 {
 
 /**
@@ -22,8 +25,8 @@ public:
 	/////////////////////////////////////////////////////////
 	// Additional types                                    //
 	/////////////////////////////////////////////////////////
-	using sf_color2 = std::pair<sf::Color, sf::Color>;
-	using sf_color3 = std::tuple<sf::Color, sf::Color, sf::Color>;
+	using SFColor2 = std::pair<sf::Color, sf::Color>;
+	using SFColor3 = std::tuple<sf::Color, sf::Color, sf::Color>;
 	
 	/////////////////////////////////////////////////////////
 	// Methods                                             //
@@ -83,17 +86,17 @@ public:
 	Menu(
 		const sf::Vector2f pos,
 		const sf::Vector2f dim,
-		const size_t rows, 
-		const size_t cols, 
+		const Row rows, 
+		const Column cols, 
 
 		const sf::Vector2f outer_margins = {10.f, 10.f},
 		const sf::Vector2f inner_margins = {10.f, 10.f},
 		const bool align_center = false,
 		const size_t char_sz = 20,
 
-		const sf_color3 option_color = {{43,7,0}, {249,231,228}, {229,197,191}},
-		const sf_color3 cursor_color = {{244,50,116}, {250,250,250}, {229,197,191}},
-		const sf_color2 box_color = {{251,245,240}, {243,200,214}},
+		const SFColor3 option_color = {{43,7,0}, {249,231,228}, {229,197,191}},
+		const SFColor3 cursor_color = {{244,50,116}, {250,250,250}, {229,197,191}},
+		const SFColor2 box_color = {{251,245,240}, {243,200,214}},
 		
 		const std::string& font_file = "font/Montserrat/Montserrat-Regular.ttf"
 	);
@@ -166,7 +169,7 @@ public:
 	 * multiples and combinations of \property add, \property remove, \property 
 	 * changeOptionText, \property changeOptionColor, etc..
 	 */
-	Menu& changeOptionColor(const int id, const sf_color3 color);
+	Menu& changeOptionColor(const int id, const SFColor3 color);
 
 	/**
 	 * \brief Checks if the menu is empty.
@@ -233,15 +236,15 @@ private:
 	using ctor_args = struct ctor_args {
 		sf::Vector2f pos;
 		sf::Vector2f dim;
-		size_t rows;
-		size_t cols;
+		Row rows;
+		Column cols;
 		sf::Vector2f outer_margins;
 		sf::Vector2f inner_margins;
 		bool align_center;
 		size_t char_sz;
-		sf_color3 option_color;
-		sf_color3 cursor_color;
-		sf_color2 box_color;
+		SFColor3 option_color;
+		SFColor3 cursor_color;
+		SFColor2 box_color;
 		std::string font_file;
 	
 		/**
@@ -274,17 +277,22 @@ private:
 	// Variables                                           //
 	/////////////////////////////////////////////////////////
 	///< Whether all menu options' text should be center-aligned horizontally.
-	bool m_align_center;
+	bool align_center_;
 
 	///< Whether the menu options' text should 
 
 	///< Maximum rows of menu options per page.
-	size_t m_rows;
+	Row rows_;
 
 	///< Maximum columns of menu options per page.
-	size_t m_cols;
+	Column cols_;
 
-	///< All menu options are stored in this vector. Each element consists of 
+	///< Row-column indices <-> 1-D index converter for the container storing 
+	// all the menu options. The menu options are displayed as rows and columns, 
+	// but their storage is 1-D.
+	RowColumnAdaptor rc_adaptor_;
+
+	///< All menu options are stored in this container. Each element consists of 
 	// the menu option's:
 	//		1. ID.
 	//		2. graphical text.
@@ -292,34 +300,34 @@ private:
 	//			a. text color.
 	//			b. background color.
 	//			c. border color.
-	std::vector<std::tuple<int, sf::Text, sf_color3>> m_options;
+	std::vector<std::tuple<int, sf::Text, SFColor3>> options_;
 
 	///< Default colors of each menu option other than the one the cursor is
 	// over, in this order:
 	//		1. Text color.
 	//		2. Background color.
 	//		3. Border color.
-	sf_color3 m_option_color;
+	SFColor3 option_color_;
 
 	///< 0-based row and column indices of the menu's cursor.
 	//		1. Row index.
 	//		2. Column index.
-	std::pair<size_t, size_t> m_cursor_rc;
+	RowColumn cursor_rc_;
 
 	///< Color of the menu option the cursor is over.
 	//		1. Text color.
 	//		2. Background color.
 	//		3. Border color.
-	sf_color3 m_cursor_color;
+	SFColor3 cursor_color_;
 
 	///< Character size for all menu options' text.
-	size_t m_char_sz;
+	size_t char_sz_;
 
 	///< Menu options' cells.
-	std::vector<sf::RectangleShape> m_cells;
+	std::vector<sf::RectangleShape> cells_;
 
 	///< Menu box.
-	sf::RectangleShape m_box;
+	sf::RectangleShape box_;
 	
 	///< Font.
 	sf::Font m_font;
@@ -375,7 +383,7 @@ private:
 	 * 					from the vector of menu options.
 	 * \param color	New color set.
 	 */
-	void setOptionColor(const size_t idx, const sf_color3 color);
+	void setOptionColor(const size_t idx, const SFColor3 color);
 
 	/**
 	 * \brief Change an option's colors.
@@ -390,7 +398,7 @@ private:
 	 * \param c			0-based column index of the menu option to change.
 	 * \param colors	New color set.
 	 */
-	void setOptionColor(const size_t r, const size_t c, const sf_color3 colors);
+	void setOptionColor(const Row r, const Column c, const SFColor3 colors);
 
 	/**
 	 * \brief Render a menu option on screen.
@@ -427,9 +435,9 @@ private:
 	 * \param id		ID of the menu option to find.
 	 * 
 	 * \return Non-const iterator to the menu option found. If there is no match, 
-	 * \var m_options.end() is returned.
+	 * \var options_.end() is returned.
 	 */
-	auto find(const int id) -> decltype(m_options.begin());
+	auto find(const int id) -> decltype(options_.begin());
 
 	/**
 	 * \brief Parse a json file that contains arguments for constructing a Menu 

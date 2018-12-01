@@ -3,7 +3,7 @@
 #include <memory>
 #include <SFML/Window.hpp>
 
-namespace rp
+namespace sb
 {
 
 class Menu;

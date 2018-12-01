@@ -5,13 +5,25 @@
 #include <boost/container/flat_map.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
-#include "Key.hpp"
+#include "utility/type/defs.hpp"
 
-namespace rp
+namespace sb
 {
 
+enum class KeyAction {
+	Up = 0,
+	Down,
+	Left,
+	Right,
+	Select,
+	Cancel,
+	Pause,
+
+	count
+};
+
 /**
- * \brief Manages the configurations for the controls of the game.
+ * \brief Configurations for the controls of the game.
  */
 class KeyControls
 {
@@ -52,10 +64,10 @@ public:
 	 * and down. This method would return the left command for A, up command for 
 	 * W, etc..
 	 * 
-	 * \param key   A key.
+	 * \param key   Pressed key.
 	 * 
-	 * \return The action associated with that key. Or nothing if there is no 
-	 * action associated with it.
+	 * \return The action associated with that key. Or nothing if there is none 
+	 * associated with it.
 	 */
 	std::optional<KeyAction> convert(const Key key) 
 	const noexcept;

@@ -1,6 +1,6 @@
 #include "Item.hpp"
 
-namespace rp
+namespace sb
 {
 
 Item::Item(int id)

@@ -5,7 +5,7 @@
 
 #include "key/KeyControls.hpp"
 
-namespace rp
+namespace sb
 {
 
 class GameState

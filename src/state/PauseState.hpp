@@ -6,7 +6,7 @@
 #include "item/Inventory.hpp"
 #include "menu/Menu.hpp"
 
-namespace rp
+namespace sb
 {
 
 class PauseState : public GameState

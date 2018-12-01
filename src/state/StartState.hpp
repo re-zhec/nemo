@@ -7,7 +7,7 @@
 #include "menu/MenuCommand.hpp"
 #include "menu/Menu.hpp"
 
-namespace rp
+namespace sb
 {
 
 class StartState : public GameState

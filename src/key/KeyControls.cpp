@@ -4,10 +4,10 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <nlohmann/json.hpp>
 
-#include "Key.hpp"
+#include "utility/type/defs.hpp"
 #include "KeyControls.hpp"
 
-namespace rp
+namespace sb
 {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -15,8 +15,8 @@ namespace rp
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace {
-	// If you want to change a key name, the path of the key controls json 
-	// file, or the indentation, then change the literals below.
+	// If you want to change a key name, the path of the JSON file storing the 
+	// configurations, or the indentation, then change the literals below.
 	constexpr auto key_up     = "up";
 	constexpr auto key_down   = "down";
 	constexpr auto key_left   = "left";
@@ -35,11 +35,12 @@ namespace {
 
 KeyControls::KeyControls()
 	: map_(
-		[](const Key& a, const Key& b) {
+		[](const Key a, const Key b) {
 			return a.v_ < b.v_;
 		}
 	)
 {
+	map_.reserve(static_cast<size_t>(KeyAction::count));
 	load();
 }
 
@@ -77,10 +78,12 @@ KeyControls::load()
 		);
 	}
 	catch (const std::ios_base::failure& e) {
+		// Some error trying to read the file.
 		// Use default controls.
 		set();
 	}
 	catch (const nlohmann::json::out_of_range& e) {
+		// Cannot find a key name in the file.
 		// Use default controls.
 		set();
 	}
@@ -95,7 +98,7 @@ KeyControls::save() const
 {
 	nlohmann::json js;
 	
-	for (auto& m : map_) {
+	for (auto m : map_) {
 		const auto [key, action] = m;
 
 		// JSON content.
@@ -111,7 +114,7 @@ KeyControls::save() const
 		}
 	};
 
-	// Save to file.
+	// Save it to the file.
 	std::ofstream ofs(path);
 	ofs << std::setw(indent) << js << std::endl;	
 }
@@ -121,15 +124,17 @@ KeyControls::save() const
 ////////////////////////////////////////////////////////////////////////////////
 
 std::optional<KeyAction> 
-KeyControls::convert(const Key key) const noexcept
+KeyControls::convert(const Key key) 
+const noexcept
 {
 	const auto it = map_.find(key);
 
 	if (it == map_.cend()) {
+		// Not a registered key.
 		return {};
 	}
 
-	const auto [UNUSED_, action] = *it;
+	[[maybe_unused]] const auto [UNUSED_, action] = *it;
 	return { action };
 }
 

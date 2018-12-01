@@ -3,75 +3,12 @@
 #include <boost/assert.hpp>
 #include <nlohmann/json.hpp>
 
+#include "utility/type/defs.hpp"
+#include "utility/wrapper/sfml.hpp"
 #include "Menu.hpp"
 
-namespace rp
+namespace sb
 {
-
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-
-namespace {
-	/**
-	 * \brief For data that is represented as a 2D matrix but is actually 1-D, 
-	 * this function converts the row and column coordinate to its 1-D 
-	 * counterpart.
-	 * 
-	 * The row and column indices are expected to be 0-based.
-	 * 
-	 * This function is used to get the index of a particular menu option. All  
-	 * menu options are stored in a vector being displayed as a 2D matrix on the 
-	 * render window.
-	 *
-	 * \param r			Row index.
-	 * \param c			Column index.
-	 * \param ncols	Number of columns per row.
-	 * 
-	 * \return 0-based 1-D index..
-	 */
-	inline auto
-	translateTo1DIndex(const size_t r, const size_t c, const size_t ncols)
-	noexcept
-	{
-		// Indices are numbered from left to right, down across rows.
-		return r * ncols + c;
-	}
-
-	/**
-	 * \brief This function is a wrapper for the overloaded one above. Instead 
-	 * of two parameters for the row and column indices, this method takes them 
-	 * one parameter, a pair.
-	 *
-	 * \param rc		Row and column indices.
-	 * \param ncols	Number of columns per row.
-	 * 
-	 * \return 0-based 1-D index.
-	 */
-	inline auto
-	translateTo1DIndex(const std::pair<size_t, size_t> rc, const size_t ncols)
-	noexcept
-	{
-		const auto [r, c] = rc;
-		return translateTo1DIndex(r, c, ncols);
-	}
-
-	/**
-	 * \brief This function does the opposite of \property translateTo1DIndex. 
-	 * It converts an 1-D index to the corresponding row and column indices.
-	 *
-	 * \param idx		0-based 1-D index.
-	 * \param ncols	Number of columns per row.
-	 * 
-	 * \return Row and column indices.
-	 */
-	inline auto
-	translateToRowColumn(const size_t idx, const size_t ncols) 
-	noexcept
-	{
-		return std::make_pair(idx / ncols, idx % ncols);
-	}
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -80,68 +17,69 @@ namespace {
 Menu::Menu(
 	const sf::Vector2f pos,
 	const sf::Vector2f dim,
-	const size_t rows, 
-	const size_t cols,
+	const Row rows, 
+	const Column cols,
 	const sf::Vector2f outer_margins,
 	const sf::Vector2f inner_margins,
 	const bool align_center,
 	const size_t char_sz,
-	const sf_color3 option_color,
-	const sf_color3 cursor_color,
-	const sf_color2 box_color,
+	const SFColor3 option_color,
+	const SFColor3 cursor_color,
+	const SFColor2 box_color,
 	const std::string& font_file
 )	
-	: m_align_center(align_center)
-	, m_rows(rows)
-	, m_cols(cols)
-	, m_option_color(option_color)
-	, m_cursor_rc({0, 0})
-	, m_cursor_color(cursor_color)
-	, m_char_sz(char_sz)	
+	: align_center_(align_center)
+	, rows_(rows)
+	, cols_(cols)
+	, rc_adaptor_(cols)
+	, option_color_(option_color)
+	, cursor_rc_({0, 0})
+	, cursor_color_(cursor_color)
+	, char_sz_(char_sz)	
 {
 	BOOST_ASSERT(pos.x >= 0.f && pos.y >= 0.f);
 	BOOST_ASSERT(dim.x >= 0.f && dim.y >= 0.f);
-	BOOST_ASSERT(m_rows > 0);
-	BOOST_ASSERT(m_cols > 0);
-	BOOST_ASSERT(m_char_sz > 0);
+	BOOST_ASSERT(rows_ > 0);
+	BOOST_ASSERT(cols_ > 0);
+	BOOST_ASSERT(char_sz_ > 0);
 
 	// Load the font file.
 	BOOST_VERIFY(m_font.loadFromFile(font_file));
 
 	// Create the menu box.
-	m_box.setSize(dim);
-	m_box.setPosition(pos);
-	m_box.setOutlineThickness(-1.f);
+	box_.setSize(dim);
+	box_.setPosition(pos);
+	box_.setOutlineThickness(-1.f);
 	
 	const auto [box_back_color, box_bord_color] = box_color;
-	m_box.setFillColor(box_back_color);
-	m_box.setOutlineColor(box_bord_color);
+	box_.setFillColor(box_back_color);
+	box_.setOutlineColor(box_bord_color);
 
 	// The area of the menu inside the margins is reserved for menu options. From
 	// there, the number of rows and columns of options determine each option's 
 	// width and height. For now, inner margins are included in the width and 
 	// height.
-	const auto option_dim = sf::Vector2f(
-		(dim.x - 2.f * outer_margins.x) / m_cols,
-		(dim.y - 2.f * outer_margins.y) / m_rows
+	const auto option_dim = sfVector2(
+		XValue { (dim.x - 2.f * outer_margins.x) / cols_.v_ },
+		YValue { (dim.y - 2.f * outer_margins.y) / rows_.v_ }
 	);
 
 	// Reserve some number of options to ease the number of forced memory 
 	// reallocations.
-	const auto noptions_per_page = m_rows * m_cols;
-	m_options.reserve(noptions_per_page);
+	const auto noptions_per_page = rows_.v_ * cols_.v_;
+	options_.reserve(noptions_per_page);
 	
 	// Create background cells to contain the menu options in one page. To save 
 	// memory, only one page worth is needed since the options outside of them 
 	// won't be drawn on screen and all cells' positions stayed the same from 
 	// page to page. We can decide the color of a cell later from the contained 
 	// option's color configuration.
-	m_cells.reserve(noptions_per_page);
+	cells_.reserve(noptions_per_page);
 
 	for (auto i = 0u; i < noptions_per_page; ++i) {
 		// Adjust cell cize so that inner margins can be inserted between them.
 		const auto cell_dim = option_dim - 2.f * inner_margins;
-		BOOST_ASSERT(cell_dim.x > m_char_sz && cell_dim.y > m_char_sz);
+		BOOST_ASSERT(cell_dim.x > char_sz_ && cell_dim.y > char_sz_);
 		sf::RectangleShape cell(cell_dim);
 
 		// Insert inner margins.
@@ -149,18 +87,21 @@ Menu::Menu(
 
 		// Place the cell in the appropriate spot in the menu. Cells line up from 
 		// left to right, down across rows.
-		const auto [r_i, c_i] = translateToRowColumn(i, m_cols);
+		const auto rc_i = rc_adaptor_.toRowColumn(i);
 		cell.setPosition(
 			  pos 
 			+ inner_margins 
-			+ sf::Vector2f(option_dim.x * c_i, option_dim.y * r_i)
+			+ sfVector2(
+				XValue { option_dim.x * rc_i.c_.v_ }, 
+				YValue { option_dim.y * rc_i.r_.v_ }
+			)
 		);
 
 		// The coloring of the cells is decided in drawOption() since they can 
 		// change depending on whether a cursor is over one or if the client 
 		// requests a specific menu option to be colored differently.
 		cell.setOutlineThickness(1.f);
-		m_cells.push_back(cell);
+		cells_.push_back(cell);
 	}
 }
 
@@ -182,18 +123,18 @@ Menu::add(const int id, const std::string& txt)
 {
 	// Make sure there is no other menu option that has the new ID.
 	const auto it = find(id);
-	BOOST_ASSERT(it == m_options.cend());
+	BOOST_ASSERT(it == options_.cend());
 
 	// Create the option's graphical text.
-	sf::Text option(txt, m_font, m_char_sz);
+	sf::Text option(txt, m_font, char_sz_);
 	
 	// Add the option to the menu.
-	m_options.push_back({id, option, m_option_color});
+	options_.push_back({id, option, option_color_});
 	
 	// Preset the option text's position on the menu for future rendering. Since 
 	// it was just added to menu, we can use the index of the last element in the
 	// menu option container.
-	presetTextPosition(m_options.size() - 1);
+	presetTextPosition(options_.size() - 1);
 	return *this;
 }
 
@@ -206,27 +147,27 @@ Menu::remove(const int id)
 {
 	// Search for the option.
 	auto it = find(id);
-	BOOST_ASSERT(it != m_options.cend());
+	BOOST_ASSERT(it != options_.cend());
 
 	// Delete it.
-	it = m_options.erase(it);
-	const auto rm_idx = static_cast<decltype(m_options.size())>(
-		it - m_options.cbegin());
+	it = options_.erase(it);
+	const auto rm_idx = static_cast<decltype(options_.size())>(
+		it - options_.cbegin());
 
 	// All options that followed the removed one need to have their text's render 
 	// positions shifted frontward one slot.
-	for (auto i = rm_idx; i < m_options.size(); ++i) {
+	for (auto i = rm_idx; i < options_.size(); ++i) {
 		presetTextPosition(i);
 	}
 
 	// The cursor needs to be refocused if it was on or after the option that was
 	// removed.
-	if (auto cur_idx = translateTo1DIndex(m_cursor_rc, m_cols);
+	if (auto cur_idx = rc_adaptor_.to1D(cursor_rc_);
 		cur_idx >= rm_idx)
 	{
 		// Move the cursor frontward if it was on the last option when that was 
 		// removed, as the cursor is hovering over nothing there.
-		if (cur_idx == m_options.size()) {
+		if (cur_idx == options_.size()) {
 			moveLeft();
 		}
 	}
@@ -243,7 +184,7 @@ Menu::changeOptionText(const int id, const std::string& txt)
 {
 	// Search for the option.
 	const auto it = find(id);
-	BOOST_ASSERT(it != m_options.cend());
+	BOOST_ASSERT(it != options_.cend());
 	[[maybe_unused]] auto& [UNUSED0_, cur_txt, UNUSED2_] = *it;
 
 	// Change to new text.
@@ -256,14 +197,14 @@ Menu::changeOptionText(const int id, const std::string& txt)
 ////////////////////////////////////////////////////////////////////////////////
 
 Menu& 
-Menu::changeOptionColor(const int id, const sf_color3 color)
+Menu::changeOptionColor(const int id, const SFColor3 color)
 {
 	// Search for the option.
 	const auto it = find(id);
-	BOOST_ASSERT(it != m_options.cend());
+	BOOST_ASSERT(it != options_.cend());
 
 	// Change its colors.
-	setOptionColor(it - m_options.cbegin(), color);
+	setOptionColor(it - options_.cbegin(), color);
 	return *this;
 }
 
@@ -274,7 +215,7 @@ Menu::changeOptionColor(const int id, const sf_color3 color)
 bool 
 Menu::empty() const noexcept
 {
-	return m_options.empty();
+	return options_.empty();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -284,9 +225,8 @@ Menu::empty() const noexcept
 void 
 Menu::moveUp()
 {
-	if ([[maybe_unused]] const auto 
-		[last_r, UNUSED_] = translateToRowColumn(m_options.size() - 1, m_cols);
-		last_r == 0) 
+	if (const auto last = rc_adaptor_.toRowColumn(options_.size() - 1);
+		last.r_ == 0) 
 	{
 		// Up => left in a horizontal menu, which can be determined based on 
 		// whether last menu option is on the first row.
@@ -306,9 +246,8 @@ Menu::moveUp()
 void 
 Menu::moveDown()
 {
-	if ([[maybe_unused]] const auto 
-		[last_r, UNUSED_] = translateToRowColumn(m_options.size() - 1, m_cols);
-		last_r == 0)
+	if (const auto last = rc_adaptor_.toRowColumn(options_.size() - 1);
+		last.r_ == 0)
 	{
 		// Down => right in a horizontal menu.
 		move(Direction::Right);
@@ -328,7 +267,7 @@ Menu::moveRight()
 {
 	// move() checks that the menu isn't empty, so no need to deal with that 
 	// here.
-	if (m_cols == 1) {
+	if (cols_ == 1) {
 		// Right => down in a vertical menu. The number of columns is always 
 		// capped at the number of columns per page, unlike the number of rows in 
 		// moveUp() and moveDown()'s cases.
@@ -347,7 +286,7 @@ void
 Menu::moveLeft()
 {
 	// move() checks that the menu isn't empty.
-	if (m_cols == 1) {
+	if (cols_ == 1) {
 		// Left => up in a vertical menu.
 		move(Direction::Up);
 	} 
@@ -364,19 +303,19 @@ void
 Menu::draw(sf::RenderWindow& window)
 {
 	// Draw the menu box.
-	window.draw(m_box);
+	window.draw(box_);
 
 	// The entire container of options isn't going to be drawned on screen. Only 
 	// the page of options where the cursor is needs to be.
-	const auto page_sz = m_cells.size();
-	const auto idx = translateTo1DIndex(m_cursor_rc, m_cols);
+	const auto page_sz = cells_.size();
+	const auto idx = rc_adaptor_.to1D(cursor_rc_);
 	const auto cur_page = idx / page_sz;
 
 	// Draw from the first to the last option from that page. In case that page 
 	// happens to be the last one, since the page doesn't necessarily have all 
 	// its rows and columns filled, be sure to stop after the very last option.
 	const auto start = cur_page * page_sz;
-	const auto n = m_options.size();
+	const auto n = options_.size();
 	const auto end = std::min(start + page_sz, n);
 
 	for (auto i = start; i < end; ++i) {
@@ -398,14 +337,14 @@ Menu::draw(sf::RenderWindow& window)
 std::optional<int>
 Menu::cursorAt() const
 {
-	if (m_options.empty()) {
+	if (options_.empty()) {
 		// Empty menu.
 		return {};
 	}
 
-	const auto idx = translateTo1DIndex(m_cursor_rc, m_cols);
-	[[maybe_unused]] const auto& [id, UNUSED1_, UNUSED2_] = m_options[idx];
-	return {id};
+	const auto idx = rc_adaptor_.to1D(cursor_rc_);
+	[[maybe_unused]] const auto& [id, UNUSED1_, UNUSED2_] = options_[idx];
+	return { id };
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -437,13 +376,13 @@ Menu::Menu(ctor_args args)
 void 
 Menu::presetTextPosition(const size_t idx)
 {
-	BOOST_ASSERT(idx < m_options.size());
+	BOOST_ASSERT(idx < options_.size());
 
 	// Menu options are positioned from left to right down across rows. After 
 	// a page is filled, the graphical positions start over from the top left 
 	// for a new page.
-	const auto& cell = m_cells[idx % m_cells.size()];
-	[[maybe_unused]] auto& [UNUSED0_, txt, UNUSED2_] = m_options[idx];
+	const auto& cell = cells_[idx % cells_.size()];
+	[[maybe_unused]] auto& [UNUSED0_, txt, UNUSED2_] = options_[idx];
 	txt.setOrigin(cell.getOrigin());
 	txt.setPosition(cell.getPosition());
 
@@ -451,11 +390,11 @@ Menu::presetTextPosition(const size_t idx)
 	// alignment depends on what was requested during construction.
 	constexpr auto center_pt = .475f;
 	const auto [width, height] = cell.getSize();
-	const auto vtalign = center_pt * (height - m_char_sz);
+	const auto vtalign = center_pt * (height - char_sz_);
 	const auto txt_width = txt.getLocalBounds().width;
-	const auto hzalign = m_align_center ? center_pt * (width - txt_width) : 10.f;
+	const auto hzalign = align_center_ ? center_pt * (width - txt_width) : 10.f;
 	
-	txt.move(hzalign, vtalign);
+	txt.move(sfVector2( XValue{ hzalign }, YValue{ vtalign } ));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -465,7 +404,7 @@ Menu::presetTextPosition(const size_t idx)
 void 
 Menu::move(const Direction dir)
 {
-	if (m_options.empty()) {
+	if (options_.empty()) {
 		// No menu options => no cursor => no movement.
 		return;
 	}	
@@ -479,31 +418,29 @@ Menu::move(const Direction dir)
 	// can move to in the last row.
 
 	// Get the row and column indices of the last option.
-	const auto [last_r, last_c] = translateToRowColumn(
-		m_options.size() - 1, m_cols
-	);
+	const auto last = rc_adaptor_.toRowColumn(options_.size() - 1);
 
 	// Get the rightmost column at the current row the cursor is on. It's needed 
 	// when moving left and right.
-	auto& [r, c] = m_cursor_rc;
-	const auto right_c = r < last_r ? m_cols - 1 : last_c;
+	auto& [r, c] = cursor_rc_;
+	const auto right_c = r < last.r_ ? cols_ - 1 : last.c_;
 
 	switch (dir) {
 		// Up/down changes the row index.
 		// If the cursor will move to the bottom row but there's no option exactly 
 		// below it, move it to the last option.
 		case Direction::Up:
-			r = r > 0 ? r - 1 : last_r;
-			c = r < last_r ? c : std::min(c, last_c);
+			r = r > 0 ? r - 1 : last.r_;
+			c = r < last.r_ ? c : std::min(c, last.c_);
 			break;
 		case Direction::Down:
-			r = r < last_r ? r + 1 : 0;
-			c = r < last_r ? c : std::min(c, last_c);
+			r = r < last.r_ ? r + 1 : Row{0};
+			c = r < last.r_ ? c : std::min(c, last.c_);
 			break;
 		
 		// Left/right changes the column index
 		case Direction::Right:
-			c = c < right_c ? c + 1 : 0;
+			c = c < right_c ? c + 1 : Column{0};
 			break;
 		case Direction::Left:
 			c = c > 0 ? c - 1 : right_c;
@@ -518,10 +455,10 @@ Menu::move(const Direction dir)
 ////////////////////////////////////////////////////////////////////////////////
 
 void 
-Menu::setOptionColor(const size_t idx, const sf_color3 color)
+Menu::setOptionColor(const size_t idx, const SFColor3 color)
 {
-	BOOST_ASSERT(idx < m_options.size());
-	[[maybe_unused]] auto& [UNUSED0_, UNUSED1_, cur_color] = m_options[idx];
+	BOOST_ASSERT(idx < options_.size());
+	[[maybe_unused]] auto& [UNUSED0_, UNUSED1_, cur_color] = options_[idx];
 	cur_color = color;
 }
 
@@ -530,10 +467,9 @@ Menu::setOptionColor(const size_t idx, const sf_color3 color)
 ////////////////////////////////////////////////////////////////////////////////
 
 void 
-Menu::setOptionColor(const size_t r, const size_t c, 
-	const sf_color3 color)
+Menu::setOptionColor(const Row r, const Column c, const SFColor3 color)
 {
-	const auto idx = translateTo1DIndex(r, c, m_cols);
+	const auto idx = rc_adaptor_.to1D(r, c);
 	setOptionColor(idx, color);
 }
 
@@ -544,20 +480,20 @@ Menu::setOptionColor(const size_t r, const size_t c,
 void 
 Menu::drawOption(const size_t idx, sf::RenderWindow& window)
 {
-	BOOST_ASSERT(idx < m_options.size());
+	BOOST_ASSERT(idx < options_.size());
 
 	// Although we can have pages of menu options, to save memory, we have only a 
 	// page worth of cells to use. So, grab the one the menu option would be
 	// drawn on.
-	auto& cell = m_cells[idx % m_cells.size()];
-	[[maybe_unused]] auto& [UNUSED_, txt, color] = m_options[idx];
+	auto& cell = cells_[idx % cells_.size()];
+	[[maybe_unused]] auto& [UNUSED_, txt, color] = options_[idx];
 
 	// If the cursor is over this menu option, then use the cursor's colorset
 	// instead of the option's normal set.
-	const auto cursor_idx = translateTo1DIndex(m_cursor_rc, m_cols);
+	const auto cursor_idx = rc_adaptor_.to1D(cursor_rc_);
 	const auto [txt_color, back_color, bord_color] = idx != cursor_idx 
 		? color 
-		: m_cursor_color;
+		: cursor_color_;
 
 	txt.setFillColor(txt_color);
 	cell.setFillColor(back_color);
@@ -577,9 +513,9 @@ Menu::drawPageRef(sf::RenderWindow& window) const
 {
 	// Get the page number the cursor is on as well as the total number of pages 
 	// of options the menu has.
-	const auto page_sz = m_cells.size();
-	const auto npages = (m_options.size() - 1) / page_sz + 1;
-	const auto cur_page = translateTo1DIndex(m_cursor_rc, m_cols) / page_sz;
+	const auto page_sz = cells_.size();
+	const auto npages = (options_.size() - 1) / page_sz + 1;
+	const auto cur_page = rc_adaptor_.to1D(cursor_rc_) / page_sz;
 	const auto atpage_txt = std::to_string(cur_page + 1) 
 		+ " / " 
 		+ std::to_string(npages);
@@ -592,18 +528,18 @@ Menu::drawPageRef(sf::RenderWindow& window) const
 	// The box should have the same background layer as the menu box's since it 
 	// will be appended to the menu. 
 	sf::RectangleShape atpage_box({atpage_box_width, atpage_box_height});
-	atpage_box.setFillColor(m_box.getFillColor());
-	atpage_box.setOutlineColor(m_box.getOutlineColor());
-	atpage_box.setOutlineThickness(m_box.getOutlineThickness());
+	atpage_box.setFillColor(box_.getFillColor());
+	atpage_box.setOutlineColor(box_.getOutlineColor());
+	atpage_box.setOutlineThickness(box_.getOutlineThickness());
 	
 	// Place it directly below the bottom right corner of the menu.
-	atpage_box.setPosition(m_box.getPosition() + m_box.getSize());
-	atpage_box.move(-atpage_box_width, m_box.getOutlineThickness());
+	atpage_box.setPosition(box_.getPosition() + box_.getSize());
+	atpage_box.move(-atpage_box_width, box_.getOutlineThickness());
 	window.draw(atpage_box);
 
 	// For the color of the page number and navigation arrow indicators, use the 
 	// menu options' default text color
-	[[maybe_unused]] const auto [txt_color, UNUSED1_, UNUSED2_] = m_option_color;
+	[[maybe_unused]] const auto [txt_color, UNUSED1_, UNUSED2_] = option_color_;
 
 	// Draw the page numbers on the right half of the box.
 	constexpr auto atpage_txt_height = atpage_box_height - 9.f;
@@ -647,9 +583,9 @@ Menu::drawPageRef(sf::RenderWindow& window) const
 ////////////////////////////////////////////////////////////////////////////////
 
 auto 
-Menu::find(const int id) -> decltype(m_options.begin())
+Menu::find(const int id) -> decltype(options_.begin())
 {
-	auto it = std::find_if(m_options.begin(), m_options.end(),
+	auto it = std::find_if(options_.begin(), options_.end(),
 		[id](const auto& option) {
 			[[maybe_unused]] const auto& [id_i, UNUSED1_, UNUSED2_] = option;
 			return id_i == id;
@@ -708,8 +644,8 @@ Menu::parseFile(const std::string& file)
 			js.at(options).at(margins).at(vertical)
 		};
 
-		args.rows         = js.at(options).at("rows");
-		args.cols         = js.at(options).at("columns");
+		args.rows         = Row{ js.at(options).at("rows") };
+		args.cols         = Column{ js.at(options).at("columns") };
 		args.align_center = js.at(options).at("center");
 		args.char_sz      = js.at(options).at("size");
 		args.font_file		= js.at("font");
@@ -734,6 +670,7 @@ Menu::parseFile(const std::string& file)
 	catch (const nlohmann::json::out_of_range& e) {
 		// BOOST_LOG_TRIVIAL(error) << file << " parsing failed. " << e.what();
 	}
+
 	return args;
 }
 
@@ -744,6 +681,8 @@ Menu::parseFile(const std::string& file)
 sf::Color 
 Menu::ctor_args::makeColor(const std::vector<int>& rgba)
 {
+	BOOST_ASSERT(rgba.size() == 4);
+
 	return {
 		static_cast<sf::Uint8>(rgba[0]),
 		static_cast<sf::Uint8>(rgba[1]),

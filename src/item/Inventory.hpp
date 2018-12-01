@@ -7,7 +7,7 @@
 
 #include "Item.hpp"
 
-namespace rp
+namespace sb
 {
 
 /**
