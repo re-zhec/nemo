@@ -1,23 +1,21 @@
 #pragma once
+
+#include <functional>
+#include <optional>
+#include <boost/container/flat_map.hpp>
 #include <SFML/Window/Keyboard.hpp>
+
+#include "Key.hpp"
 
 namespace rp
 {
 
 /**
- * \brief Configurations for the controls of the game.
+ * \brief Manages the configurations for the controls of the game.
  */
 class KeyControls
 {
 public:
-	sf::Keyboard::Key up_;     ///< Up key.
-	sf::Keyboard::Key down_;   ///< Down key.
-	sf::Keyboard::Key left_;   ///< Left key.
-	sf::Keyboard::Key right_;  ///< Right key.
-	sf::Keyboard::Key select_; ///< Select key.
-	sf::Keyboard::Key cancel_; ///< Cancel or back key.
-	sf::Keyboard::Key pause_;  ///< Pause key.
-
 	/**
 	 * \brief Construct the controls.
 	 * 
@@ -37,13 +35,8 @@ public:
 	 */
 	~KeyControls();
 	
-	KeyControls(const KeyControls&)              = default;
-	KeyControls(KeyControls&&)                   = default;
-	KeyControls& operator=(const KeyControls&) & = default;
-	KeyControls& operator=(KeyControls&&) &      = default;
-	
 	/**
-	 * \brief Set the controls to the key configurations from the JSON file.
+	 * \brief Set the controls to the key configurations found in the JSON file.
 	 */
 	void load();
 
@@ -52,9 +45,22 @@ public:
 	 */
 	void save() const;
 
-private:
-	struct Key { sf::Keyboard::Key v; };
+	/**
+	 * \brief Get the control associated with a pressed key.
+	 * 
+	 * For example, if the A, W, D, and S keys are mapped to the left, up, right, 
+	 * and down. This method would return the left command for A, up command for 
+	 * W, etc..
+	 * 
+	 * \param key   A key.
+	 * 
+	 * \return The action associated with that key. Or nothing if there is no 
+	 * action associated with it.
+	 */
+	std::optional<KeyAction> convert(const Key key) 
+	const noexcept;
 
+private:
 	struct Up     : public Key {};
 	struct Down   : public Key {};
 	struct Left   : public Key {};
@@ -62,6 +68,11 @@ private:
 	struct Select : public Key {};
 	struct Cancel : public Key {};
 	struct Pause  : public Key {};
+
+	///< All keys and what they are mapped to are stored here.
+	boost::container::flat_map< Key, KeyAction, 
+		std::function <bool (const Key&, const Key&)> 
+	> map_;
 
 	/**
 	 * \brief Set the current controls of the game.
@@ -75,13 +86,13 @@ private:
 	 * \param pause     New pause key setting.
 	 */
 	void set(
-		Up up         = Up     { sf::Keyboard::W },
-		Down down     = Down   { sf::Keyboard::S },
-		Left left     = Left   { sf::Keyboard::A },
-		Right right   = Right  { sf::Keyboard::D },
+		Up     up     = Up     { sf::Keyboard::W },
+		Down   down   = Down   { sf::Keyboard::S },
+		Left   left   = Left   { sf::Keyboard::A },
+		Right  right  = Right  { sf::Keyboard::D },
 		Select select = Select { sf::Keyboard::P },
 		Cancel cancel = Cancel { sf::Keyboard::O },
-		Pause pause   = Pause  { sf::Keyboard::Backspace }
+		Pause  pause  = Pause  { sf::Keyboard::Backspace }
 	) noexcept;
 };
 

@@ -1,8 +1,10 @@
 #pragma once
+
 #include <vector>
 #include <unordered_map>
 #include <memory>
 #include <optional>
+
 #include "Item.hpp"
 
 namespace rp

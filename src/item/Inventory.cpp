@@ -1,7 +1,8 @@
 #include <algorithm>
 #include <boost/assert.hpp>
 #include <boost/range/adaptor/reversed.hpp>
-#include "../include/Inventory.hpp"
+
+#include "Inventory.hpp"
 
 namespace rp
 {

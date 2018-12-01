@@ -2,14 +2,12 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 
-#include "../include/GameState.hpp"
-#include "../include/StartState.hpp"
-#include "../include/KeyControls.hpp"
-#include "../include/Logger.hpp"
+#include "state/GameState.hpp"
+#include "state/StartState.hpp"
 
 int main()
 {
-	initBoostLogging();
+	// initBoostLogging();
 
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Our Secret Base");
 	window.setFramerateLimit(30);
@@ -17,8 +15,6 @@ int main()
 	// BOOST_LOG_TRIVIAL(debug) << "Window opened.";
 
 	std::unique_ptr<rp::GameState> state = std::make_unique<rp::StartState>();
-
-	rp::KeyControls kc;
 
 	// run the program as long as window is opened
 	while (window.isOpen())

@@ -2,8 +2,8 @@
 #include <fstream>
 #include <boost/assert.hpp>
 #include <nlohmann/json.hpp>
-#include "../include/Logger.hpp"
-#include "../include/Menu.hpp"
+
+#include "Menu.hpp"
 
 namespace rp
 {

@@ -1,4 +1,4 @@
-#include "../include/Item.hpp"
+#include "Item.hpp"
 
 namespace rp
 {

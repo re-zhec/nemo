@@ -3,8 +3,8 @@
 #include <SFML/Graphics.hpp>
 
 #include "GameState.hpp"
-#include "Inventory.hpp"
-#include "Menu.hpp"
+#include "item/Inventory.hpp"
+#include "menu/Menu.hpp"
 
 namespace rp
 {

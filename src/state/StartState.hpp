@@ -1,10 +1,11 @@
 #pragma once
+
 #include <memory>
 #include <SFML/Graphics.hpp>
 
 #include "GameState.hpp"
-#include "MenuCommand.hpp"
-#include "Menu.hpp"
+#include "menu/MenuCommand.hpp"
+#include "menu/Menu.hpp"
 
 namespace rp
 {

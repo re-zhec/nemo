@@ -3,11 +3,12 @@ OBJDIR := obj
 SRCDIR := src
 
 EXE := $(EXEDIR)/game.exe
-SRC := $(wildcard $(SRCDIR)/*.cpp)
-OBJ := $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 LOG := $(wildcard $(EXEDIR)/*.log)
+SRC := $(wildcard $(SRCDIR)/**/*.cpp) $(wildcard $(SRCDIR)/*.cpp)
+OBJ := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
 
-CPPFLAGS := -IC:/SFML/include
+CPPFLAGS += -I$(SRCDIR)
+CPPFLAGS += -IC:/SFML/include
 CPPFLAGS += -IC:/MinGW/include
 CPPFLAGS += -MMD -MP -DSFML_STATIC
 
@@ -36,5 +37,6 @@ clean:
 $(EXE): $(OBJ)
 	$(CXX) $^ $(LDFLAGS) $(LDLIBS) -o $@ 
 
-$(OBJ): $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@

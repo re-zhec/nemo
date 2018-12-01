@@ -2,10 +2,10 @@
 #include <memory>
 #include <SFML/Graphics.hpp>
 
-#include "../include/GameState.hpp"
-#include "../include/StartState.hpp"
-#include "../include/Menu.hpp"
-#include "../include/MenuCommand.hpp"
+#include "state/GameState.hpp"
+#include "state/StartState.hpp"
+#include "menu/Menu.hpp"
+#include "menu/MenuCommand.hpp"
 
 namespace rp
 {
@@ -35,33 +35,36 @@ StartState::handleEvent(const sf::Event& event) &
 	{
 		case sf::Event::KeyPressed:
 			std::cout << event.key.code << std::endl;
+			switch (const auto action = controls_.convert(Key {event.key.code} );
+				action.value_or(KeyAction::None))
+			{
+				case KeyAction::Cancel:
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed cancel key";
+					break;
 
-			if (event.key.code == controls_.cancel_) {
-				// BOOST_LOG_TRIVIAL(debug) << "Pressed cancel key";
-			}
+				case KeyAction::Up:
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed up key";
+					command_ = std::make_unique<MenuUpCommand>();
+					command_->execute(main_menu_);
+					break;
 
-			if (event.key.code == controls_.up_) {
-				// BOOST_LOG_TRIVIAL(debug) << "Pressed up key";
-				command_ = std::make_unique<MenuUpCommand>();
-				command_->execute(main_menu_);
-			}
+				case KeyAction::Down:
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed down key.";
+					command_ = std::make_unique<MenuDownCommand>();
+					command_->execute(main_menu_);
+					break;
 
-			if (event.key.code == controls_.down_) {
-				// BOOST_LOG_TRIVIAL(debug) << "Pressed down key.";
-				command_ = std::make_unique<MenuDownCommand>();
-				command_->execute(main_menu_);
-			}
+				case KeyAction::Left:
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed left key.";
+					command_ = std::make_unique<MenuLeftCommand>();
+					command_->execute(main_menu_);
+					break;
 
-			if (event.key.code == controls_.left_) {
-				// BOOST_LOG_TRIVIAL(debug) << "Pressed left key.";
-				command_ = std::make_unique<MenuLeftCommand>();
-				command_->execute(main_menu_);
-			}
-
-			if (event.key.code == controls_.right_) {
-				// BOOST_LOG_TRIVIAL(debug) << "Pressed left key.";
-				command_ = std::make_unique<MenuRightCommand>();
-				command_->execute(main_menu_);
+				case KeyAction::Right:
+					// BOOST_LOG_TRIVIAL(debug) << "Pressed right key.";
+					command_ = std::make_unique<MenuRightCommand>();
+					command_->execute(main_menu_);
+					break;
 			}
 			break;
 		

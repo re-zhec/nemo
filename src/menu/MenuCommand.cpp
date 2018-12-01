@@ -1,7 +1,8 @@
 #include <memory>
 #include <SFML/Window.hpp>
-#include "../include/Menu.hpp"
-#include "../include/MenuCommand.hpp"
+
+#include "Menu.hpp"
+#include "MenuCommand.hpp"
 
 namespace rp
 {

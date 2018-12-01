@@ -1,8 +1,9 @@
-#include "../include/GameState.hpp"
-#include "../include/PauseState.hpp"
-#include "../include/Inventory.hpp"
-#include "../include/Menu.hpp"
-#include "../include/Item.hpp"
+#include <SFML/Graphics.hpp>
+
+#include "GameState.hpp"
+#include "PauseState.hpp"
+#include "item/Inventory.hpp"
+#include "menu/Menu.hpp"
 
 namespace rp
 {
