@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <boost/assert.hpp>
 
 #include "StrongType.hpp"
