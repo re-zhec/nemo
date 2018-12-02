@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <fstream>
 #include <boost/assert.hpp>
-#include <nlohmann/json.hpp>
 
+#include "nlohmann/json.hpp"
 #include "utility/type/defs.hpp"
 #include "utility/wrapper/sfml.hpp"
 #include "Menu.hpp"

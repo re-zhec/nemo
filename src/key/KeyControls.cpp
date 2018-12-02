@@ -2,8 +2,8 @@
 #include <iomanip>
 #include <boost/container/flat_map.hpp>
 #include <SFML/Window/Keyboard.hpp>
-#include <nlohmann/json.hpp>
 
+#include "nlohmann/json.hpp"
 #include "utility/type/defs.hpp"
 #include "KeyControls.hpp"
 
@@ -25,7 +25,7 @@ namespace {
 	constexpr auto key_cancel = "cancel";
 	constexpr auto key_pause  = "pause";
 
-	constexpr auto path = "json/settings/controls.json";
+	constexpr auto path = "data/settings/controls.json";
 	constexpr auto indent = 4;
 }
 

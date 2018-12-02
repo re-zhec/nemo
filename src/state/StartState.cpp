@@ -15,7 +15,7 @@ namespace sb
 ////////////////////////////////////////////////////////////////////////////////
 
 StartState::StartState()
-	: main_menu_("json/menus/start.json")
+	: main_menu_("data/menus/start.json")
 {
 	main_menu_
 		.add(MainMenuKey::Play, "Play")

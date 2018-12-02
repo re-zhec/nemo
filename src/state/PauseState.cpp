@@ -10,8 +10,8 @@ namespace sb
 
 PauseState::PauseState(std::shared_ptr<Inventory> inv)
 	: m_inv(std::move(inv))
-	, m_main_menu("json/menus/pause.json")
-	, m_item_menu("json/menus/inventory.json")
+	, m_main_menu("data/menus/pause.json")
+	, m_item_menu("data/menus/inventory.json")
 {
 	m_main_menu
 		.add(MainMenuKey::Party, "Party")
