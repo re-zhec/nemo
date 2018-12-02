@@ -6,6 +6,7 @@
 #include "state/StartState.hpp"
 #include "menu/Menu.hpp"
 #include "menu/MenuCommand.hpp"
+#include "utility/type/MenuOptionID.hpp"
 
 namespace sb
 {
@@ -16,12 +17,13 @@ namespace sb
 
 StartState::StartState()
 	: main_menu_("data/menus/start.json")
+	// : main_menu_({XValue(40.f), YValue(40.f)}, {XValue(600.f), YValue(100.f)}, Row(1), Column(4))
 {
 	main_menu_
-		.add(MainMenuKey::Play, "Play")
-		.add(MainMenuKey::Continue, "Continue")
-		.add(MainMenuKey::Settings, "Settings")
-		.add(MainMenuKey::Quit, "Quit");
+		.add(MenuOptionID(MainMenuKey::Play), "Play")
+		.add(MenuOptionID(MainMenuKey::Continue), "Continue")
+		.add(MenuOptionID(MainMenuKey::Settings), "Settings")
+		.add(MenuOptionID(MainMenuKey::Quit), "Quit");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

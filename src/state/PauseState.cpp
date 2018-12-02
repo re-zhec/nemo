@@ -4,6 +4,7 @@
 #include "PauseState.hpp"
 #include "item/Inventory.hpp"
 #include "menu/Menu.hpp"
+#include "utility/type/MenuOptionID.hpp"
 
 namespace sb
 {
@@ -14,15 +15,15 @@ PauseState::PauseState(std::shared_ptr<Inventory> inv)
 	, m_item_menu("data/menus/inventory.json")
 {
 	m_main_menu
-		.add(MainMenuKey::Party, "Party")
-		.add(MainMenuKey::Items, "Items")
-		.add(MainMenuKey::Gears, "Gears")
-		.add(MainMenuKey::Map, "Map")
-		.add(MainMenuKey::Logs, "Logs");
+		.add(MenuOptionID(MainMenuKey::Party), "Party")
+		.add(MenuOptionID(MainMenuKey::Items), "Items")
+		.add(MenuOptionID(MainMenuKey::Gears), "Gears")
+		.add(MenuOptionID(MainMenuKey::Map), "Map")
+		.add(MenuOptionID(MainMenuKey::Logs), "Logs");
 
 	for (auto entry : m_inv->peek()) {
 		const auto& [id, name, quantity] = entry;
-		m_item_menu.add(id, name + " x " + std::to_string(quantity));
+		m_item_menu.add(MenuOptionID(id), name + " x " + std::to_string(quantity));
 	}
 }
 
@@ -62,22 +63,25 @@ PauseState::update(sf::RenderWindow& window) &
 	window.clear(sf::Color::White);
 	m_main_menu.draw(window);
 
-	switch (const auto which_menu = m_main_menu.cursorAt();
-		which_menu.value_or(MainMenuKey::Default))
+	if (const auto which_menu = m_main_menu.cursorAt();
+		which_menu)
 	{
-		case MainMenuKey::Party:
-			break;
-		case MainMenuKey::Items:
-			m_item_menu.draw(window);
-			break;
-		case MainMenuKey::Gears:
-			break;
-		case MainMenuKey::Map:
-			break;
-		case MainMenuKey::Logs:
-			break;
-		default:
-			break;
+		switch (int(*which_menu))
+		{
+			case MainMenuKey::Party:
+				break;
+			case MainMenuKey::Items:
+				m_item_menu.draw(window);
+				break;
+			case MainMenuKey::Gears:
+				break;
+			case MainMenuKey::Map:
+				break;
+			case MainMenuKey::Logs:
+				break;
+			default:
+				break;
+		}
 	}
 }
 

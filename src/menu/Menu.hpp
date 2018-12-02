@@ -6,6 +6,8 @@
 #include <optional>
 #include <SFML/Graphics.hpp>
 
+#include "utility/type/MenuOptionID.hpp"
+#include "utility/type/Color.hpp"
 #include "utility/type/XYValue.hpp"
 #include "utility/type/RowColumn.hpp"
 #include "utility/adaptor/RC1DConverter.hpp"
@@ -24,12 +26,6 @@ namespace sb
 class Menu
 {
 public:
-	/////////////////////////////////////////////////////////
-	// Additional types                                    //
-	/////////////////////////////////////////////////////////
-	using SFColor2 = std::pair<sf::Color, sf::Color>;
-	using SFColor3 = std::tuple<sf::Color, sf::Color, sf::Color>;
-	
 	/////////////////////////////////////////////////////////
 	// Methods                                             //
 	/////////////////////////////////////////////////////////
@@ -50,66 +46,53 @@ public:
 	 * 	4. \a char_sz is too tall to fit text in each slot allocated for menu 
 	 * 		options.
 	 * 
-	 * \param pos			Starting position in the render window.
-	 * 							1. X-coordinate.
-	 * 							2. Y-coordinate.
-	 * \param dim			Overall size. This doesn't include the page number that 
-	 * 						may be added directly below the menu.
-	 * 							1. Width.
-	 * 							2. Height.
-	 * \param rows			Maximum rows of menu options per page.
-	 * \param cols			Maximum columns of menu options per page.
+	 * \param pos              Starting position in the render window.
+	 * \param dim              Overall size. This doesn't include the page number 
+	 *                         that may be added directly below the menu.
+	 * \param rows             Maximum rows of menu options per page.
+	 * \param cols             Maximum columns of menu options per page.
 	 * 
-	 * [Optional parameters]
+	 * \param outer_margins    Margins between the sides of the menu and of the 
+	 *                         outer menu options.
+	 * \param inner_margins    Margins between each menu option.
 	 * 
-	 * \param outer_margins		Margins between the sides of the menu and of the 
-	 * 								outer menu options.
-	 * 									1. Horizontal margins.
-	 * 									2. Vertical margins.
-	 * \param inner_margins		Margins between each menu option.
-	 * 									1. Horizontal margins.
-	 * 									2. Vertical margins.
-	 * \param align_center		Whether all menu options' text should be 
-	 * 								horizontally centered.
-	 * \param char_sz				Character size of each menu option's text.
-	 * \param option_color		Colors of each menu option.
-	 * 									1. Text color.
-	 * 									2. Background color. 
-	 * 									3. Border color.
-	 * \param cursor_color		Cursor's colors, in this order:
-	 * 									1. text color.
-	 * 									2. background color.
-	 * 									3. border color.
-	 * \param box_color			Colors of the menu's box, in this order:
-	 * 									1. background color.
-	 * 									2. border color.
+	 * \param align_center     Whether all menu options' text should be 
+	 *                         horizontally centered.
+	 * \param char_sz          Character size of each menu option's text.
+	 * 
+	 * \param option_color     Colorset for each menu option.
+	 * \param cursor_color		Colorset for the menu option the cursor is over.
+	 * \param box_color			Colorset for the menu's box.
+	 * 
 	 * \param font_file			Font's filepath.
 	 */
 	Menu(
 		const XYValue pos,
 		const XYValue dim,
+
 		const Row rows, 
 		const Column cols, 
 
 		const XYValue outer_margins = { XValue(10.f), YValue(10.f) },
 		const XYValue inner_margins = { XValue(10.f), YValue(10.f) },
-		const bool align_center = false,
-		const size_t char_sz = 20,
 
-		const SFColor3 option_color = {{43,7,0}, {249,231,228}, {229,197,191}},
-		const SFColor3 cursor_color = {{244,50,116}, {250,250,250}, {229,197,191}},
-		const SFColor2 box_color = {{251,245,240}, {243,200,214}},
+		const bool align_center = false,
+		const size_t char_sz = 16,
+
+		const TextBoxColor option_color = {{43,7,0}, {249,231,228}, {229,197,191}},
+		const TextBoxColor cursor_color = {{244,50,116}, {250,250,250}, {229,197,191}},
+		const TextBoxColor box_color    = {{0,0,0}, {251,245,240}, {243,200,214}},
 		
-		const std::string& font_file = "font/AmaticSC-Regular.ttf"
+		const std::string& font_file = "font/Montserrat-Regular.ttf"
 	);
 
 	/**
 	 * \brief Constructs an empty menu.
 	 * 
 	 * This constructor reads a json file containing the arguments for the first 
-	 * constructor, extracts them, and calls the above constructor with them.
+	 * constructor and use the above constructor for the extracted values.
 	 * 
-	 * \param file		Path to the file containing menu arguments.
+	 * \param file    Path to the file containing menu arguments.
 	 */
 	Menu(const std::string& file);
 
@@ -120,14 +103,12 @@ public:
 	 * option shares \a id with an existing one from this menu, this method 
 	 * generates an assertion error.
 	 * 
-	 * \param id		ID of menu option to add.
-	 * \param txt		Text to display.
+	 * \param id      ID of menu option to add.
+	 * \param txt     Text to display.
 	 * 
-	 * \return A reference to the object itself. This allows for chaining 
-	 * multiples and combinations of \property add, \property remove, \property 
-	 * changeOptionText, \property changeOptionColor, etc..
+	 * \return A reference to the object itself. Chaining is possible.
 	 */
-	Menu& add(const int id, const std::string& txt);
+	Menu& add(const MenuOptionID id, const std::string& txt);
 
 	/**
 	 * \brief Remove an option from the menu.
@@ -135,13 +116,11 @@ public:
 	 * This method finds the option based on its ID. If no options in the menu 
 	 * has \a id, this method generates an assertion error.
 	 * 
-	 * \param id		ID of the menu option to remove.
+	 * \param id      ID of the menu option to remove.
 	 * 
-	 * \return A reference to the object itself. This allows for chaining 
-	 * multiples and combinations of \property add, \property remove, \property 
-	 * changeOptionText, \property changeOptionColor, etc..
+	 * \return A reference to the object itself. Chaining is possible.
 	 */
-	Menu& remove(const int id);
+	Menu& remove(const MenuOptionID id);
 
 	/**
 	 * \brief Change an option's text
@@ -149,14 +128,12 @@ public:
 	 * This method finds the option based on its ID. If no options in the menu 
 	 * has \a id, then this method generates an assertion error.
 	 * 
-	 * \param key		Menu option's ID.
-	 * \param txt		New text to display.
+	 * \param key     Menu option's ID.
+	 * \param txt     New text to display.
 	 * 
-	 * \return A reference to the object itself. This allows for chaining 
-	 * multiples and combinations of \property add, \property remove, \property 
-	 * changeOptionText, \property changeOptionColor, etc..
+	 * \return A reference to the object itself. Chaining is possible
 	 */
-	Menu& changeOptionText(const int id, const std::string& txt);
+	Menu& changeOptionText(const MenuOptionID id, const std::string& txt);
 
 	/**
 	 * \brief Change an option's colors.
@@ -164,14 +141,12 @@ public:
 	 * This method finds the option based on its ID. If no options in the menu 
 	 * has \a id, this method generates an assertion error.
 	 * 
-	 * \param key		ID of the menu option to change the colors of.
-	 * \param colors	New color set.
+	 * \param key     ID of the menu option to change the colors of.
+	 * \param colors  New color set.
 	 * 
-	 * \return A reference to the object itself. This allows for chaining 
-	 * multiples and combinations of \property add, \property remove, \property 
-	 * changeOptionText, \property changeOptionColor, etc..
+	 * \return A reference to the object itself. Chaining is possible.
 	 */
-	Menu& changeOptionColor(const int id, const SFColor3 color);
+	Menu& changeOptionColor(const MenuOptionID id, const TextBoxColor color);
 
 	/**
 	 * \brief Checks if the menu is empty.
@@ -179,11 +154,6 @@ public:
 	 * \return True if so; false otherwise.
 	 */
 	bool empty() const noexcept;
-	
-	/**
-	 * moveUp(), moveDown(), moveLeft(), and moveRight() move the menu's cursor 
-	 * from one option to another.
-	 */
 
 	/**
 	 * \brief Move cursor to the menu option above the current one.
@@ -211,7 +181,7 @@ public:
 	 * This method should be called during every iteration of the game loop to 
 	 * keep the menu displayed.
 	 * 
-	 * \param window		Render window for the graphical menu to be drawn on.
+	 * \param window     Render window for the graphical menu to be drawn on.
 	 */
 	void draw(sf::RenderWindow& window);
 
@@ -224,7 +194,7 @@ public:
 	 * \return The ID of the menu option that the cursor is on, or nothing 
 	 * if the menu is empty.
 	 */
-	std::optional<int> cursorAt() const;
+	std::optional<MenuOptionID> cursorAt() const;
 
 private:
 	/////////////////////////////////////////////////////////
@@ -235,7 +205,7 @@ private:
 	 * object, listed in order of the parameters of the first constructor. The 
 	 * second constructor creates one from reading the json file.
 	 */
-	using ctor_args = struct ctor_args {
+	struct ctor_args {
 		XYValue pos;
 		XYValue dim;
 		Row rows;
@@ -244,21 +214,31 @@ private:
 		XYValue inner_margins;
 		bool align_center;
 		size_t char_sz;
-		SFColor3 option_color;
-		SFColor3 cursor_color;
-		SFColor2 box_color;
+		TextBoxColor option_color;
+		TextBoxColor cursor_color;
+		TextBoxColor box_color;
 		std::string font_file;
 	
 		/**
 		 * \brief Create a sf::Color object out of a 4-element vector of integers. 
 		 * attributes.
 		 * 
-		 * \param color 		An json element node containing RGB values in this 
-		 * 						order: red, green, blue, and alpha (opacity).
+		 * \param color   An json element node containing RGB values in this 
+		 *                order: red, green, blue, and alpha (opacity).
 		 * 
 		 * \return An SFML Color object
 		 */
-		sf::Color makeColor(const std::vector<int>& rgba);
+		sf::Color makeColor(const std::array<int, 4>& rgba);
+	};
+
+	/**
+	 * \brief Menu option.
+	 */ 
+	struct MenuOption
+	{
+		MenuOptionID id_;    ///< Identifier.
+		sf::Text     txt_;   ///< Graphical text.
+		TextBoxColor color_; ///< Colorset.
 	};
 
 	/**
@@ -278,75 +258,36 @@ private:
 	/////////////////////////////////////////////////////////
 	// Variables                                           //
 	/////////////////////////////////////////////////////////
-	///< Whether all menu options' text should be center-aligned horizontally.
+	///< All menu options' text are aligned to the center horizontally if this is
+	// true. Otherwise, they are aligned to the left.
 	bool align_center_;
 
-	///< Whether the menu options' text should 
+	Row    rows_; ///< Maximum rows of menu options per page.
+	Column cols_; ///< Maximum columns of menu options per page.
 
-	///< Maximum rows of menu options per page.
-	Row rows_;
+	///< Row-column/1-D index converter to index the container where all the menu 
+	// options are stored. While options are displayed as rows and columns, they 
+	// are internally stored in 1-D.
+	RC1DConverter rc1d_conv_;
 
-	///< Maximum columns of menu options per page.
-	Column cols_;
+	///< Container where all menu options that are added to, deleted from, etc.. 
+	std::vector<MenuOption> options_;
 
-	///< Row-column indices <-> 1-D index converter for the container storing 
-	// all the menu options. The menu options are displayed as rows and columns, 
-	// but their storage is 1-D.
-	RC1DConverter rc1d_;
+	TextBoxColor option_color_; ///< Default colorset of each menu option other 
+	                            // than the one the cursor is over.
+	TextBoxColor cursor_color_; ///< Colorset for the menu option the cursor is 
+	                            // over.
 
-	///< All menu options are stored in this container. Each element consists of 
-	// the menu option's:
-	//		1. ID.
-	//		2. graphical text.
-	//		3. colors, in this order:
-	//			a. text color.
-	//			b. background color.
-	//			c. border color.
-	std::vector<std::tuple<int, sf::Text, SFColor3>> options_;
+	RCPoint cursor_rc_; ///< 0-based row and column indices of the menu's cursor.
+	size_t char_sz_;    ///< Character size for all menu options' text.
 
-	///< Default colors of each menu option other than the one the cursor is
-	// over, in this order:
-	//		1. Text color.
-	//		2. Background color.
-	//		3. Border color.
-	SFColor3 option_color_;
-
-	///< 0-based row and column indices of the menu's cursor.
-	//		1. Row index.
-	//		2. Column index.
-	RCPoint cursor_rc_;
-
-	///< Color of the menu option the cursor is over.
-	//		1. Text color.
-	//		2. Background color.
-	//		3. Border color.
-	SFColor3 cursor_color_;
-
-	///< Character size for all menu options' text.
-	size_t char_sz_;
-
-	///< Menu options' cells.
-	std::vector<sf::RectangleShape> cells_;
-
-	///< Menu box.
-	sf::RectangleShape box_;
-	
-	///< Font.
-	sf::Font m_font;
+	std::vector<sf::RectangleShape> cells_; ///< Menu options' cells.
+	sf::RectangleShape box_;                ///< Menu box.
+	sf::Font font_;                        ///< Font.
 
 	/////////////////////////////////////////////////////////
 	// Methods                                             //
 	/////////////////////////////////////////////////////////
-	/**
-	 * \brief Construct an empty menu from a struct containing arguments for the
-	 * first public constructor.
-	 * 
-	 * This constructor works in tandem with \property parseFile to implement 
-	 * the second public constructor, which takes in a json file containing the 
-	 * menu specifications.
-	 */
-	Menu(ctor_args args);
-
 	/**
 	 * \brief Set where a menu option's text should be drawn on the render 
 	 * window.
@@ -359,21 +300,10 @@ private:
 	 * 
 	 * If \a idx is out of range, this method generates an assertion error.
 	 *  
-	 * \param idx		0-based index of the option in the menu option vector that
-	 * 					needs to its position preset.
+	 * \param idx     0-based index of the option in the menu option vector that
+	 *                needs to its position preset.
 	 */
 	void presetTextPosition(const int idx);
-
-	/**
-	 * \brief Move the cursor along menu options.
-	 * 
-	 * This method does the main work for \property moveUp, \property moveDown, 
-	 * \property moveLeft, and \property moveRight, which all give this method 
-	 * the directional enumeration value as the argument.
-	 *  
-	 * \param dir		Direction to move the cursor to.
-	 */
-	void move(const Direction dir);
 
 	/**
 	 * \brief Change an option's colors
@@ -381,26 +311,10 @@ private:
 	 * If \a idx is outside the range of menu options, this method generates an
 	 * assertion error.
 	 * 
-	 * \param idx		0-based index of the menu option to change the colors of 
-	 * 					from the vector of menu options.
-	 * \param color	New color set.
+	 * \param idx     0-based index of the menu option to change the colors of
+	 * \param color   New colorset.
 	 */
-	void setOptionColor(const int idx, const SFColor3 color);
-
-	/**
-	 * \brief Change an option's colors.
-	 * 
-	 * This is a wrapper around the above version. It takes the row and column 
-	 * indices of the menu option to change the colors of and translate that to 
-	 * its 1-D correspondent to grab the desired menu option by index. A row and
-	 * column position that is outside the range of menu options will cause an 
-	 * assertion error.
-	 * 
-	 * \param r			0-based row index of the menu option to change.
-	 * \param c			0-based column index of the menu option to change.
-	 * \param colors	New color set.
-	 */
-	void setOptionColor(const Row r, const Column c, const SFColor3 colors);
+	void setOptionColor(const int idx, const TextBoxColor color);
 
 	/**
 	 * \brief Render a menu option on screen.
@@ -410,8 +324,8 @@ private:
 	 * 
 	 * This method generates an assertion error if \a idx is out of range.
 	 * 
-	 * \param idx		0-based index of the menu option to render.
-	 * \param window	Render window for the menu option to be drawn on.
+	 * \param idx		   0-based index of the menu option to render.
+	 * \param window	   Render window for the menu option to be drawn on.
 	 */
 	void drawOption(const int idx, sf::RenderWindow& window);
 
@@ -421,10 +335,21 @@ private:
 	 * \property draw calls this method if there are multiple pages. If there is 
 	 * only one when this is called, the arrows are excluded.
 	 * 
-	 * \param window	Render window for the page navigation references to be 
-	 * drawn on.
+	 * \param window     Render window for the page navigation references to be 
+	 *                   drawn on.
 	 */
 	void drawPageRef(sf::RenderWindow& window) const;
+
+	/**
+	 * \brief Move the cursor along menu options.
+	 * 
+	 * This method does the main work for \property moveUp, \property moveDown, 
+	 * \property moveLeft, and \property moveRight, which all give this method 
+	 * the directional enumeration value as the argument.
+	 *  
+	 * \param dir     Direction to move the cursor to.
+	 */
+	void move(const Direction dir);
 
 	/**
 	 * \brief Search for an option
@@ -434,19 +359,29 @@ private:
 	 * the same ID, but if for some reason there is, it grabs the first 
 	 * occurrence.
 	 * 
-	 * \param id		ID of the menu option to find.
+	 * \param id      ID of the menu option to find.
 	 * 
 	 * \return Non-const iterator to the menu option found. If there is no match, 
 	 * \var options_.end() is returned.
 	 */
-	auto find(const int id) -> decltype(options_.begin());
+	auto find(const MenuOptionID id) -> decltype(options_.begin());
+
+	/**
+	 * \brief Construct an empty menu from a struct containing arguments for the
+	 * non-file-based public constructor.
+	 * 
+	 * This constructor works in tandem with \property parseFile to implement 
+	 * the public constructor that takes in a json file containing menu 
+	 * specifications.
+	 */
+	Menu(ctor_args args);
 
 	/**
 	 * \brief Parse a json file that contains arguments for constructing a Menu 
 	 * object.
 	 * 
 	 * This method works in tandem with the private constructor to implement the 
-	 * second public constructor, which takes in a json file.
+	 * the public constructor that takes in a json file.
 	 * 
 	 * It generates an assertion error if the json parsing fails for any 
 	 * reason.
