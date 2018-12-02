@@ -1,5 +1,4 @@
 #include <memory>
-#include <SFML/Window.hpp>
 
 #include "Menu.hpp"
 #include "MenuCommand.hpp"

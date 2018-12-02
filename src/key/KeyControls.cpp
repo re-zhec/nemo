@@ -4,7 +4,7 @@
 #include <SFML/Window/Keyboard.hpp>
 
 #include "nlohmann/json.hpp"
-#include "utility/type/defs.hpp"
+#include "utility/type/Key.hpp"
 #include "KeyControls.hpp"
 
 namespace sb
@@ -33,10 +33,22 @@ namespace {
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+KeyControls::Up::Up         (const sf::Keyboard::Key k) : Key(k) {}
+KeyControls::Down::Down     (const sf::Keyboard::Key k) : Key(k) {}
+KeyControls::Left::Left     (const sf::Keyboard::Key k) : Key(k) {}
+KeyControls::Right::Right   (const sf::Keyboard::Key k) : Key(k) {}
+KeyControls::Select::Select (const sf::Keyboard::Key k) : Key(k) {}
+KeyControls::Cancel::Cancel (const sf::Keyboard::Key k) : Key(k) {}
+KeyControls::Pause::Pause   (const sf::Keyboard::Key k) : Key(k) {}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 KeyControls::KeyControls()
 	: map_(
 		[](const Key a, const Key b) {
-			return a.v_ < b.v_;
+			return a < b;
 		}
 	)
 {
@@ -103,13 +115,13 @@ KeyControls::save() const
 
 		// JSON content.
 		switch (action) {
-			case KeyAction::Up:     js[key_up]     = key.v_; break;
-			case KeyAction::Down:   js[key_down]   = key.v_; break;
-			case KeyAction::Left:   js[key_left]   = key.v_; break;
-			case KeyAction::Right:  js[key_right]  = key.v_; break;
-			case KeyAction::Select: js[key_select] = key.v_; break;
-			case KeyAction::Cancel: js[key_cancel] = key.v_; break;
-			case KeyAction::Pause:  js[key_pause]  = key.v_; break;
+			case KeyAction::Up:     js[key_up]     = sf::Keyboard::Key(key); break;
+			case KeyAction::Down:   js[key_down]   = sf::Keyboard::Key(key); break;
+			case KeyAction::Left:   js[key_left]   = sf::Keyboard::Key(key); break;
+			case KeyAction::Right:  js[key_right]  = sf::Keyboard::Key(key); break;
+			case KeyAction::Select: js[key_select] = sf::Keyboard::Key(key); break;
+			case KeyAction::Cancel: js[key_cancel] = sf::Keyboard::Key(key); break;
+			case KeyAction::Pause:  js[key_pause]  = sf::Keyboard::Key(key); break;
 			default: break;
 		}
 	};

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <memory>
-#include <SFML/Window.hpp>
-
 namespace sb
 {
 

@@ -4,13 +4,13 @@ SRCDIR := src
 
 EXE := $(EXEDIR)/game.exe
 LOG := $(wildcard $(EXEDIR)/*.log)
-SRC := $(wildcard $(SRCDIR)/**/*.cpp) $(wildcard $(SRCDIR)/*.cpp)
+SRC := $(shell find $(SRCDIR) -name *.cpp)
 OBJ := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
 
 CPPFLAGS := -I$(SRCDIR)
-CPPFLAGS += -I$(SRCDIR)/json/single_include
-CPPFLAGS += -I$(SRCDIR)/type_safe/include
-CPPFLAGS += -I$(SRCDIR)/type_safe/external/debug_assert
+CPPFLAGS += -Ijson/single_include
+CPPFLAGS += -Itype_safe/include
+CPPFLAGS += -Itype_safe/external/debug_assert
 
 CPPFLAGS += -IC:/SFML/include
 CPPFLAGS += -IC:/MinGW/include
@@ -29,9 +29,10 @@ LDLIBS += -lopengl32 -lwinmm -lgdi32 -lfreetype
 all: setup $(EXE)
 
 setup:
-	mkdir -p $(EXEDIR)
 	mkdir -p $(OBJDIR)
-	cp -r font $(EXEDIR)
+	mkdir -p $(EXEDIR)
+	mkdir -p $(EXEDIR)/font
+	cp $(wildcard font/*/fonts/ttf/*-Regular.ttf) $(EXEDIR)/font/
 	cp -r data $(EXEDIR)
 	
 clean:

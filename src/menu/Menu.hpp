@@ -6,8 +6,10 @@
 #include <optional>
 #include <SFML/Graphics.hpp>
 
-#include "utility/type/defs.hpp"
-#include "utility/adaptor/RowColumnAdaptor.hpp"
+#include "utility/type/XYValue.hpp"
+#include "utility/type/RowColumn.hpp"
+#include "utility/adaptor/RC1DConverter.hpp"
+#include "utility/wrapper/sfml.hpp"
 
 namespace sb
 {
@@ -43,12 +45,12 @@ public:
 	 * 
 	 * This constructor generates an assertion error if 
 	 * 	1. \a pos, \a dim, or \a margins contains negative values.
-	 * 	2. \a rows or \a cols is 0.
+	 * 	2. \a rows or \a cols is non-positive.
 	 * 	3. a font file cannot be found at \var font_file.
 	 * 	4. \a char_sz is too tall to fit text in each slot allocated for menu 
 	 * 		options.
 	 * 
-	 * \param pos			Starting position in the render window, in this order:
+	 * \param pos			Starting position in the render window.
 	 * 							1. X-coordinate.
 	 * 							2. Y-coordinate.
 	 * \param dim			Overall size. This doesn't include the page number that 
@@ -61,19 +63,19 @@ public:
 	 * [Optional parameters]
 	 * 
 	 * \param outer_margins		Margins between the sides of the menu and of the 
-	 * 								outer menu options, in this order:
-	 * 									1. horizontal margins.
-	 * 									2. vertical margins.
-	 * \param inner_margins		Margins between each menu option, in this order:
-	 * 									1. horizontal margins.
-	 * 									2. vertical margins.
-	 * \param align_center		Whether all menu's text should be horizontally 
-	 * 								centered.
+	 * 								outer menu options.
+	 * 									1. Horizontal margins.
+	 * 									2. Vertical margins.
+	 * \param inner_margins		Margins between each menu option.
+	 * 									1. Horizontal margins.
+	 * 									2. Vertical margins.
+	 * \param align_center		Whether all menu options' text should be 
+	 * 								horizontally centered.
 	 * \param char_sz				Character size of each menu option's text.
-	 * \param option_color		Colors of each menu option, in this order:
-	 * 									1. text color.
-	 * 									2. background color. 
-	 * 									3. border color.
+	 * \param option_color		Colors of each menu option.
+	 * 									1. Text color.
+	 * 									2. Background color. 
+	 * 									3. Border color.
 	 * \param cursor_color		Cursor's colors, in this order:
 	 * 									1. text color.
 	 * 									2. background color.
@@ -84,13 +86,13 @@ public:
 	 * \param font_file			Font's filepath.
 	 */
 	Menu(
-		const sf::Vector2f pos,
-		const sf::Vector2f dim,
+		const XYValue pos,
+		const XYValue dim,
 		const Row rows, 
 		const Column cols, 
 
-		const sf::Vector2f outer_margins = {10.f, 10.f},
-		const sf::Vector2f inner_margins = {10.f, 10.f},
+		const XYValue outer_margins = { XValue(10.f), YValue(10.f) },
+		const XYValue inner_margins = { XValue(10.f), YValue(10.f) },
 		const bool align_center = false,
 		const size_t char_sz = 20,
 
@@ -98,7 +100,7 @@ public:
 		const SFColor3 cursor_color = {{244,50,116}, {250,250,250}, {229,197,191}},
 		const SFColor2 box_color = {{251,245,240}, {243,200,214}},
 		
-		const std::string& font_file = "font/Montserrat/Montserrat-Regular.ttf"
+		const std::string& font_file = "font/AmaticSC-Regular.ttf"
 	);
 
 	/**
@@ -234,12 +236,12 @@ private:
 	 * second constructor creates one from reading the json file.
 	 */
 	using ctor_args = struct ctor_args {
-		sf::Vector2f pos;
-		sf::Vector2f dim;
+		XYValue pos;
+		XYValue dim;
 		Row rows;
 		Column cols;
-		sf::Vector2f outer_margins;
-		sf::Vector2f inner_margins;
+		XYValue outer_margins;
+		XYValue inner_margins;
 		bool align_center;
 		size_t char_sz;
 		SFColor3 option_color;
@@ -290,7 +292,7 @@ private:
 	///< Row-column indices <-> 1-D index converter for the container storing 
 	// all the menu options. The menu options are displayed as rows and columns, 
 	// but their storage is 1-D.
-	RowColumnAdaptor rc_adaptor_;
+	RC1DConverter rc1d_;
 
 	///< All menu options are stored in this container. Each element consists of 
 	// the menu option's:
@@ -312,7 +314,7 @@ private:
 	///< 0-based row and column indices of the menu's cursor.
 	//		1. Row index.
 	//		2. Column index.
-	RowColumn cursor_rc_;
+	RCPoint cursor_rc_;
 
 	///< Color of the menu option the cursor is over.
 	//		1. Text color.
@@ -360,7 +362,7 @@ private:
 	 * \param idx		0-based index of the option in the menu option vector that
 	 * 					needs to its position preset.
 	 */
-	void presetTextPosition(const size_t idx);
+	void presetTextPosition(const int idx);
 
 	/**
 	 * \brief Move the cursor along menu options.
@@ -383,7 +385,7 @@ private:
 	 * 					from the vector of menu options.
 	 * \param color	New color set.
 	 */
-	void setOptionColor(const size_t idx, const SFColor3 color);
+	void setOptionColor(const int idx, const SFColor3 color);
 
 	/**
 	 * \brief Change an option's colors.
@@ -411,7 +413,7 @@ private:
 	 * \param idx		0-based index of the menu option to render.
 	 * \param window	Render window for the menu option to be drawn on.
 	 */
-	void drawOption(const size_t idx, sf::RenderWindow& window);
+	void drawOption(const int idx, sf::RenderWindow& window);
 
 	/**
 	 * \brief Render the page numbers and navigator arrow indicators on screen.

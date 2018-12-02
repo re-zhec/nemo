@@ -3,7 +3,8 @@
 #include <boost/assert.hpp>
 
 #include "nlohmann/json.hpp"
-#include "utility/type/defs.hpp"
+#include "utility/type/XYValue.hpp"
+#include "utility/type/RowColumn.hpp"
 #include "utility/wrapper/sfml.hpp"
 #include "Menu.hpp"
 
@@ -15,12 +16,12 @@ namespace sb
 ////////////////////////////////////////////////////////////////////////////////
 
 Menu::Menu(
-	const sf::Vector2f pos,
-	const sf::Vector2f dim,
+	const XYValue pos,
+	const XYValue dim,
 	const Row rows, 
 	const Column cols,
-	const sf::Vector2f outer_margins,
-	const sf::Vector2f inner_margins,
+	const XYValue outer_margins,
+	const XYValue inner_margins,
 	const bool align_center,
 	const size_t char_sz,
 	const SFColor3 option_color,
@@ -31,14 +32,14 @@ Menu::Menu(
 	: align_center_(align_center)
 	, rows_(rows)
 	, cols_(cols)
-	, rc_adaptor_(cols)
+	, rc1d_(cols)
 	, option_color_(option_color)
-	, cursor_rc_({0, 0})
+	, cursor_rc_({ Row(0), Column(0) })
 	, cursor_color_(cursor_color)
 	, char_sz_(char_sz)	
 {
-	BOOST_ASSERT(pos.x >= 0.f && pos.y >= 0.f);
-	BOOST_ASSERT(dim.x >= 0.f && dim.y >= 0.f);
+	BOOST_ASSERT(pos.x_ >= 0.f && pos.y_ >= 0.f);
+	BOOST_ASSERT(dim.x_ >= 0.f && dim.y_ >= 0.f);
 	BOOST_ASSERT(rows_ > 0);
 	BOOST_ASSERT(cols_ > 0);
 	BOOST_ASSERT(char_sz_ > 0);
@@ -47,8 +48,8 @@ Menu::Menu(
 	BOOST_VERIFY(m_font.loadFromFile(font_file));
 
 	// Create the menu box.
-	box_.setSize(dim);
-	box_.setPosition(pos);
+	box_.setSize(sfVector2(dim));
+	box_.setPosition(sfVector2(pos));
 	box_.setOutlineThickness(-1.f);
 	
 	const auto [box_back_color, box_bord_color] = box_color;
@@ -60,13 +61,13 @@ Menu::Menu(
 	// width and height. For now, inner margins are included in the width and 
 	// height.
 	const auto option_dim = sfVector2(
-		XValue { (dim.x - 2.f * outer_margins.x) / cols_.v_ },
-		YValue { (dim.y - 2.f * outer_margins.y) / rows_.v_ }
+		(dim.x_ - XValue(2.f) * outer_margins.x_) / XValue(int(cols_)),
+		(dim.y_ - YValue(2.f) * outer_margins.y_) / YValue(int(rows_))
 	);
 
 	// Reserve some number of options to ease the number of forced memory 
 	// reallocations.
-	const auto noptions_per_page = rows_.v_ * cols_.v_;
+	const auto noptions_per_page = int(rows_) * int(cols_);
 	options_.reserve(noptions_per_page);
 	
 	// Create background cells to contain the menu options in one page. To save 
@@ -76,24 +77,26 @@ Menu::Menu(
 	// option's color configuration.
 	cells_.reserve(noptions_per_page);
 
-	for (auto i = 0u; i < noptions_per_page; ++i) {
+	for (auto i = 0; i < noptions_per_page; ++i) {
 		// Adjust cell cize so that inner margins can be inserted between them.
-		const auto cell_dim = option_dim - 2.f * inner_margins;
+		const auto inner_margins_v = sfVector2(inner_margins);
+		const auto cell_dim = option_dim - 2.f * inner_margins_v;
 		BOOST_ASSERT(cell_dim.x > char_sz_ && cell_dim.y > char_sz_);
+
 		sf::RectangleShape cell(cell_dim);
 
 		// Insert inner margins.
-		cell.setOrigin(-inner_margins);
+		cell.setOrigin(-inner_margins_v);
 
 		// Place the cell in the appropriate spot in the menu. Cells line up from 
 		// left to right, down across rows.
-		const auto rc_i = rc_adaptor_.toRowColumn(i);
+		const auto rc_i = rc1d_.toRowColumn(i);
 		cell.setPosition(
-			  pos 
-			+ inner_margins 
+			inner_margins_v
+			+ sfVector2(pos) 
 			+ sfVector2(
-				XValue { option_dim.x * rc_i.c_.v_ }, 
-				YValue { option_dim.y * rc_i.r_.v_ }
+				XValue(option_dim.x * int(rc_i.c_)), 
+				YValue(option_dim.y * int(rc_i.r_))
 			)
 		);
 
@@ -146,28 +149,27 @@ Menu&
 Menu::remove(const int id)
 {
 	// Search for the option.
-	auto it = find(id);
-	BOOST_ASSERT(it != options_.cend());
+	auto iter = find(id);
+	BOOST_ASSERT(iter != options_.cend());
 
 	// Delete it.
-	it = options_.erase(it);
-	const auto rm_idx = static_cast<decltype(options_.size())>(
-		it - options_.cbegin());
+	iter = options_.erase(iter);
 
 	// All options that followed the removed one need to have their text's render 
 	// positions shifted frontward one slot.
-	for (auto i = rm_idx; i < options_.size(); ++i) {
-		presetTextPosition(i);
+	for (auto it = iter; it != options_.cend(); ++it) {
+		presetTextPosition(it - options_.cbegin());
 	}
 
 	// The cursor needs to be refocused if it was on or after the option that was
 	// removed.
-	if (auto cur_idx = rc_adaptor_.to1D(cursor_rc_);
-		cur_idx >= rm_idx)
-	{
+	const auto cur_idx = rc1d_.to1D(cursor_rc_);
+	const auto rm_idx = iter - options_.cbegin();
+	
+	if (cur_idx >= rm_idx) {
 		// Move the cursor frontward if it was on the last option when that was 
 		// removed, as the cursor is hovering over nothing there.
-		if (cur_idx == options_.size()) {
+		if (cur_idx == static_cast<decltype(cur_idx)>(options_.size())) {
 			moveLeft();
 		}
 	}
@@ -225,7 +227,7 @@ Menu::empty() const noexcept
 void 
 Menu::moveUp()
 {
-	if (const auto last = rc_adaptor_.toRowColumn(options_.size() - 1);
+	if (const auto last = rc1d_.toRowColumn(options_.size() - 1);
 		last.r_ == 0) 
 	{
 		// Up => left in a horizontal menu, which can be determined based on 
@@ -246,7 +248,7 @@ Menu::moveUp()
 void 
 Menu::moveDown()
 {
-	if (const auto last = rc_adaptor_.toRowColumn(options_.size() - 1);
+	if (const auto last = rc1d_.toRowColumn(options_.size() - 1);
 		last.r_ == 0)
 	{
 		// Down => right in a horizontal menu.
@@ -308,7 +310,7 @@ Menu::draw(sf::RenderWindow& window)
 	// The entire container of options isn't going to be drawned on screen. Only 
 	// the page of options where the cursor is needs to be.
 	const auto page_sz = cells_.size();
-	const auto idx = rc_adaptor_.to1D(cursor_rc_);
+	const auto idx = rc1d_.to1D(cursor_rc_);
 	const auto cur_page = idx / page_sz;
 
 	// Draw from the first to the last option from that page. In case that page 
@@ -342,7 +344,7 @@ Menu::cursorAt() const
 		return {};
 	}
 
-	const auto idx = rc_adaptor_.to1D(cursor_rc_);
+	const auto idx = rc1d_.to1D(cursor_rc_);
 	[[maybe_unused]] const auto& [id, UNUSED1_, UNUSED2_] = options_[idx];
 	return { id };
 }
@@ -374,9 +376,9 @@ Menu::Menu(ctor_args args)
 ////////////////////////////////////////////////////////////////////////////////
 
 void 
-Menu::presetTextPosition(const size_t idx)
+Menu::presetTextPosition(const int idx)
 {
-	BOOST_ASSERT(idx < options_.size());
+	BOOST_ASSERT(idx >= 0 && idx < static_cast<decltype(idx)>(options_.size()));
 
 	// Menu options are positioned from left to right down across rows. After 
 	// a page is filled, the graphical positions start over from the top left 
@@ -418,32 +420,32 @@ Menu::move(const Direction dir)
 	// can move to in the last row.
 
 	// Get the row and column indices of the last option.
-	const auto last = rc_adaptor_.toRowColumn(options_.size() - 1);
+	const auto last = rc1d_.toRowColumn(options_.size() - 1);
 
 	// Get the rightmost column at the current row the cursor is on. It's needed 
 	// when moving left and right.
 	auto& [r, c] = cursor_rc_;
-	const auto right_c = r < last.r_ ? cols_ - 1 : last.c_;
+	const auto right_c = r < last.r_ ? cols_ - Column(1) : last.c_;
 
 	switch (dir) {
 		// Up/down changes the row index.
 		// If the cursor will move to the bottom row but there's no option exactly 
 		// below it, move it to the last option.
 		case Direction::Up:
-			r = r > 0 ? r - 1 : last.r_;
+			r = r > 0 ? r - Row(1) : last.r_;
 			c = r < last.r_ ? c : std::min(c, last.c_);
 			break;
 		case Direction::Down:
-			r = r < last.r_ ? r + 1 : Row{0};
+			r = r < last.r_ ? r + Row(1) : Row(0);
 			c = r < last.r_ ? c : std::min(c, last.c_);
 			break;
 		
 		// Left/right changes the column index
 		case Direction::Right:
-			c = c < right_c ? c + 1 : Column{0};
+			c = c < right_c ? c + Column(1) : Column(0);
 			break;
 		case Direction::Left:
-			c = c > 0 ? c - 1 : right_c;
+			c = c > 0 ? c - Column(1) : right_c;
 			break;
 		default:
 			break;
@@ -455,9 +457,9 @@ Menu::move(const Direction dir)
 ////////////////////////////////////////////////////////////////////////////////
 
 void 
-Menu::setOptionColor(const size_t idx, const SFColor3 color)
+Menu::setOptionColor(const int idx, const SFColor3 color)
 {
-	BOOST_ASSERT(idx < options_.size());
+	BOOST_ASSERT(idx >= 0 && idx < static_cast<decltype(idx)>(options_.size()));
 	[[maybe_unused]] auto& [UNUSED0_, UNUSED1_, cur_color] = options_[idx];
 	cur_color = color;
 }
@@ -469,7 +471,7 @@ Menu::setOptionColor(const size_t idx, const SFColor3 color)
 void 
 Menu::setOptionColor(const Row r, const Column c, const SFColor3 color)
 {
-	const auto idx = rc_adaptor_.to1D(r, c);
+	const auto idx = rc1d_.to1D(r, c);
 	setOptionColor(idx, color);
 }
 
@@ -478,9 +480,9 @@ Menu::setOptionColor(const Row r, const Column c, const SFColor3 color)
 ////////////////////////////////////////////////////////////////////////////////
 
 void 
-Menu::drawOption(const size_t idx, sf::RenderWindow& window)
+Menu::drawOption(const int idx, sf::RenderWindow& window)
 {
-	BOOST_ASSERT(idx < options_.size());
+	BOOST_ASSERT(idx >= 0 && idx < static_cast<decltype(idx)>(options_.size()));
 
 	// Although we can have pages of menu options, to save memory, we have only a 
 	// page worth of cells to use. So, grab the one the menu option would be
@@ -490,7 +492,7 @@ Menu::drawOption(const size_t idx, sf::RenderWindow& window)
 
 	// If the cursor is over this menu option, then use the cursor's colorset
 	// instead of the option's normal set.
-	const auto cursor_idx = rc_adaptor_.to1D(cursor_rc_);
+	const auto cursor_idx = rc1d_.to1D(cursor_rc_);
 	const auto [txt_color, back_color, bord_color] = idx != cursor_idx 
 		? color 
 		: cursor_color_;
@@ -515,7 +517,7 @@ Menu::drawPageRef(sf::RenderWindow& window) const
 	// of options the menu has.
 	const auto page_sz = cells_.size();
 	const auto npages = (options_.size() - 1) / page_sz + 1;
-	const auto cur_page = rc_adaptor_.to1D(cursor_rc_) / page_sz;
+	const auto cur_page = rc1d_.to1D(cursor_rc_) / page_sz;
 	const auto atpage_txt = std::to_string(cur_page + 1) 
 		+ " / " 
 		+ std::to_string(npages);
@@ -625,27 +627,27 @@ Menu::parseFile(const std::string& file)
 
 	try {
 		args.pos = {
-			js.at(position).at("x"), 
-			js.at(position).at("y")
+			XValue(js.at(position).at("x")), 
+			YValue(js.at(position).at("y"))
 		};
 
 		args.dim = { 
-			js.at(dimensions).at("width"), 
-			js.at(dimensions).at("height") 
+			XValue(js.at(dimensions).at("width")), 
+			YValue(js.at(dimensions).at("height")) 
 		};
 
 		args.outer_margins = {
-			js.at(box).at(margins).at(horizontal),
-			js.at(box).at(margins).at(vertical)
+			XValue(js.at(box).at(margins).at(horizontal)),
+			YValue(js.at(box).at(margins).at(vertical))
 		};
 
 		args.inner_margins = {
-			js.at(options).at(margins).at(horizontal),
-			js.at(options).at(margins).at(vertical)
+			XValue(js.at(options).at(margins).at(horizontal)),
+			YValue(js.at(options).at(margins).at(vertical))
 		};
 
-		args.rows         = Row{ js.at(options).at("rows") };
-		args.cols         = Column{ js.at(options).at("columns") };
+		args.rows         = Row(js.at(options).at("rows"));
+		args.cols         = Column(js.at(options).at("columns"));
 		args.align_center = js.at(options).at("center");
 		args.char_sz      = js.at(options).at("size");
 		args.font_file		= js.at("font");

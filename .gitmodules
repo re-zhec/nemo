@@ -1,6 +1,12 @@
-[submodule "src/json"]
-	path = src/json
+[submodule "json"]
+	path = json
 	url = https://github.com/nlohmann/json.git
-[submodule "src/type_safe"]
-	path = src/type_safe
+[submodule "type_safe"]
+	path = type_safe
 	url = https://github.com/foonathan/type_safe.git
+[submodule "font/AmaticSC"]
+	path = font/AmaticSC
+	url = https://github.com/googlefonts/AmaticSC.git
+[submodule "font/Montserrat"]
+	path = font/Montserrat
+	url = https://github.com/JulietaUla/Montserrat.git

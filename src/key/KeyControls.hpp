@@ -5,7 +5,7 @@
 #include <boost/container/flat_map.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
-#include "utility/type/defs.hpp"
+#include "utility/type/Key.hpp"
 
 namespace sb
 {
@@ -73,13 +73,13 @@ public:
 	const noexcept;
 
 private:
-	struct Up     : public Key {};
-	struct Down   : public Key {};
-	struct Left   : public Key {};
-	struct Right  : public Key {};
-	struct Select : public Key {};
-	struct Cancel : public Key {};
-	struct Pause  : public Key {};
+	struct Up     : public Key { Up    (const sf::Keyboard::Key k); };
+	struct Down   : public Key { Down  (const sf::Keyboard::Key k); };
+	struct Left   : public Key { Left  (const sf::Keyboard::Key k); };
+	struct Right  : public Key { Right (const sf::Keyboard::Key k); };
+	struct Select : public Key { Select(const sf::Keyboard::Key k); };
+	struct Cancel : public Key { Cancel(const sf::Keyboard::Key k); };
+	struct Pause  : public Key { Pause (const sf::Keyboard::Key k); };
 
 	///< All keys and what they are mapped to are stored here.
 	boost::container::flat_map< Key, KeyAction, 
@@ -98,13 +98,13 @@ private:
 	 * \param pause     New pause key setting.
 	 */
 	void set(
-		Up     up     = Up     { sf::Keyboard::W },
-		Down   down   = Down   { sf::Keyboard::S },
-		Left   left   = Left   { sf::Keyboard::A },
-		Right  right  = Right  { sf::Keyboard::D },
-		Select select = Select { sf::Keyboard::P },
-		Cancel cancel = Cancel { sf::Keyboard::O },
-		Pause  pause  = Pause  { sf::Keyboard::Backspace }
+		Up     up     = Up     (sf::Keyboard::W),
+		Down   down   = Down   (sf::Keyboard::S),
+		Left   left   = Left   (sf::Keyboard::A),
+		Right  right  = Right  (sf::Keyboard::D),
+		Select select = Select (sf::Keyboard::P),
+		Cancel cancel = Cancel (sf::Keyboard::O),
+		Pause  pause  = Pause  (sf::Keyboard::Backspace)
 	) noexcept;
 };
 

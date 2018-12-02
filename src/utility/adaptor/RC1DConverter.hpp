@@ -1,4 +1,8 @@
-#include "utility/type/defs.hpp"
+#pragma once
+
+#include <boost/assert.hpp>
+
+#include "utility/type/RowColumn.hpp"
 
 namespace sb
 {
@@ -12,7 +16,7 @@ namespace sb
  * 
  * \return 0-based 1-D index.
  */
-class RowColumnAdaptor
+class RC1DConverter
 {
 public:
 	/**
@@ -24,10 +28,10 @@ public:
 	 * 
 	 * \return 0-based 1-D index.
 	 */
-	RowColumnAdaptor(Column cols)
+	RC1DConverter(Column cols)
 		: cols_(cols)
 	{
-		BOOST_ASSERT(cols.v_ != 0u);
+		BOOST_ASSERT(int(cols) > 0);
 	}
 
 	/**
@@ -43,7 +47,7 @@ public:
 	const noexcept
 	{
 		// Indices are numbered from left to right, down across rows.
-		return r.v_ * cols_.v_ + c.v_;
+		return int(r) * int(cols_) + int(c);
 	}
 
 	/**
@@ -56,11 +60,10 @@ public:
 	 * \return 0-based 1-D index.
 	 */
 	auto
-	to1D(const RowColumn rc)
+	to1D(const RCPoint rc)
 	const noexcept
 	{
-		const auto [r, c] = rc;
-		return to1D(r, c);
+		return to1D(rc.r_, rc.c_);
 	}
 
 	/**
@@ -71,11 +74,12 @@ public:
 	 * 
 	 * \return Row and column indices.
 	 */
-	RowColumn
-	toRowColumn(const size_t idx) 
+	RCPoint
+	toRowColumn(const int idx) 
 	const noexcept
 	{
-		return { idx / cols_.v_, idx % cols_.v_ };
+		const auto cols = int(cols_);
+		return { Row(idx / cols), Column(idx % cols) };
 	}
 
 private:
