@@ -1,0 +1,6 @@
+[submodule "src/json"]
+	path = src/json
+	url = https://github.com/nlohmann/json.git
+[submodule "src/type_safe"]
+	path = src/type_safe
+	url = https://github.com/foonathan/type_safe.git

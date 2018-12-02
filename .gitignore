@@ -18,5 +18,3 @@
 ###########
 build/
 obj/
-src/type_safe/
-src/nlohmann/

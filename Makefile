@@ -7,7 +7,11 @@ LOG := $(wildcard $(EXEDIR)/*.log)
 SRC := $(wildcard $(SRCDIR)/**/*.cpp) $(wildcard $(SRCDIR)/*.cpp)
 OBJ := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
 
-CPPFLAGS += -I$(SRCDIR)
+CPPFLAGS := -I$(SRCDIR)
+CPPFLAGS += -I$(SRCDIR)/json/single_include
+CPPFLAGS += -I$(SRCDIR)/type_safe/include
+CPPFLAGS += -I$(SRCDIR)/type_safe/external/debug_assert
+
 CPPFLAGS += -IC:/SFML/include
 CPPFLAGS += -IC:/MinGW/include
 CPPFLAGS += -MMD -MP -DSFML_STATIC
@@ -22,13 +26,13 @@ LDLIBS += -lopengl32 -lwinmm -lgdi32 -lfreetype
 
 .PHONY: all clean
 
-all: data $(EXE)
+all: setup $(EXE)
 
-data:
+setup:
 	mkdir -p $(EXEDIR)
 	mkdir -p $(OBJDIR)
 	cp -r font $(EXEDIR)
-	cp -r json $(EXEDIR)
+	cp -r data $(EXEDIR)
 	
 clean:
 	rm -rf $(EXEDIR)
