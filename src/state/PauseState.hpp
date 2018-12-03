@@ -17,7 +17,7 @@ public:
 	virtual void update(sf::RenderWindow& window) & override;
 
 private:
-	enum MainMenuKey {
+	enum MenuChoice {
 		Party,
 		Items,
 		Gears,

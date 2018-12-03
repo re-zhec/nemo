@@ -3,52 +3,54 @@
 #include <SFML/Graphics.hpp>
 
 #include "state/GameState.hpp"
-#include "state/StartState.hpp"
+#include "state/MenuState.hpp"
 
 int main()
 {
 	// initBoostLogging();
 
+	// Open a window.
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Our Secret Base");
 	window.setFramerateLimit(30);
 	window.setKeyRepeatEnabled(false);
 	// BOOST_LOG_TRIVIAL(debug) << "Window opened.";
 
-	std::unique_ptr<sb::GameState> state = std::make_unique<sb::StartState>();
+	std::unique_ptr<sb::GameState> state = std::make_unique<sb::MenuState>();
 
-	// run the program as long as window is opened
+	// Run the program as long as its window is open.
 	while (window.isOpen())
 	{
 		sf::Event event;
 
-		// there are pending events
+		// Check for pending events.
 		if (window.pollEvent(event))
 		{
-			// Regardless of what state the game is in, pause the game when the 
-			// window loses focus and resume the game when the window regains 
-			// focus
-			if (event.type == sf::Event::LostFocus) {
-				// pause game
-				// BOOST_LOG_TRIVIAL(debug) << "Window lost focus.";
-			}
-			
-			else if (event.type == sf::Event::GainedFocus) {
-				// resume game
-				// BOOST_LOG_TRIVIAL(debug) << "Window gained focus.";
-			}
+			switch (event.type) {
+				// These cases apply to any state of the game.
+				case sf::Event::LostFocus:
+					// Pause the game.
+					// BOOST_LOG_TRIVIAL(debug) << "Window lost focus.";
+					break;
+				case sf::Event::GainedFocus:
+					// Resume the game.
+					// BOOST_LOG_TRIVIAL(debug) << "Window gained focus.";
+					break;
 
-			else if (event.type == sf::Event::Closed) {
-				// close window
-				window.close();
-				// BOOST_LOG_TRIVIAL(debug) << "Window closed.";
-			}
-			else {
-				state->handleEvent(event);
+				case sf::Event::Closed:
+					// Close the window.
+					window.close();
+					// BOOST_LOG_TRIVIAL(debug) << "Window closed.";
+					break;
+				default:
+					// The other events depend on the current state of the game.
+					state->handleEvent(event);
+					break;
 			}
 		}
 
+		// Draw the updated render window on screen.
 		state->update(window);
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

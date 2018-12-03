@@ -15,11 +15,11 @@ PauseState::PauseState(std::shared_ptr<Inventory> inv)
 	, m_item_menu("data/menus/inventory.json")
 {
 	m_main_menu
-		.add(MenuOptionID(MainMenuKey::Party), "Party")
-		.add(MenuOptionID(MainMenuKey::Items), "Items")
-		.add(MenuOptionID(MainMenuKey::Gears), "Gears")
-		.add(MenuOptionID(MainMenuKey::Map), "Map")
-		.add(MenuOptionID(MainMenuKey::Logs), "Logs");
+		.add(MenuOptionID(MenuChoice::Party), "Party")
+		.add(MenuOptionID(MenuChoice::Items), "Items")
+		.add(MenuOptionID(MenuChoice::Gears), "Gears")
+		.add(MenuOptionID(MenuChoice::Map), "Map")
+		.add(MenuOptionID(MenuChoice::Logs), "Logs");
 
 	for (auto entry : m_inv->peek()) {
 		const auto& [id, name, quantity] = entry;
@@ -68,16 +68,16 @@ PauseState::update(sf::RenderWindow& window) &
 	{
 		switch (int(*which_menu))
 		{
-			case MainMenuKey::Party:
+			case MenuChoice::Party:
 				break;
-			case MainMenuKey::Items:
+			case MenuChoice::Items:
 				m_item_menu.draw(window);
 				break;
-			case MainMenuKey::Gears:
+			case MenuChoice::Gears:
 				break;
-			case MainMenuKey::Map:
+			case MenuChoice::Map:
 				break;
-			case MainMenuKey::Logs:
+			case MenuChoice::Logs:
 				break;
 			default:
 				break;

@@ -31,6 +31,12 @@ struct RCPoint
 {
 	Row    r_;
 	Column c_;
+
+	RCPoint(const Row r, const Column c)
+		: r_(r)
+		, c_(c)
+	{
+	}
 };
 
 }

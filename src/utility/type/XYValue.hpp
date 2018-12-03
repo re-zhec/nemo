@@ -31,6 +31,54 @@ struct XYValue
 {
 	XValue x_;
 	YValue y_;
+
+	XYValue(const XValue x, const YValue y)
+		: x_(x)
+		, y_(y)
+	{
+	}
+
+	bool
+	operator>= (const XYValue rhs)
+	const noexcept
+	{
+		return x_ >= rhs.x_ && y_ >= rhs.y_;
+	}
+
+	bool 
+	operator> (const XYValue rhs)
+	const noexcept
+	{
+		return x_ > rhs.x_ && y_ > rhs.y_;
+	}
+
+	bool 
+	operator<= (const XYValue rhs)
+	const noexcept
+	{
+		return x_ <= rhs.x_ && y_ <= rhs.y_;
+	}
+
+	bool 
+	operator< (const XYValue rhs)
+	const noexcept
+	{
+		return x_ < rhs.x_ && y_ < rhs.y_;
+	}
+
+	bool 
+	operator== (const XYValue rhs)
+	const noexcept
+	{
+		return x_ == rhs.x_ && y_ == rhs.y_;
+	}
+
+	bool 
+	operator!= (const XYValue rhs)
+	const noexcept
+	{
+		return x_ != rhs.x_ || y_ != rhs.y_;
+	}
 };
 
 }

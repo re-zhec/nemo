@@ -1,27 +1,27 @@
 #pragma once
 
-#include <memory>
+#include <stack>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
-#include "key/KeyControls.hpp"
+#include "GameState.hpp"
+#include "menu/Menu.hpp"
 
 namespace sb
 {
 
-class GameState
+class TitleState : public GameState
 {
 public:
 	virtual void 
 	handleEvent(const sf::Event& event) 
-	& = 0;
+	& override;
 	
 	virtual void 
 	update(sf::RenderWindow& window) 
-	& = 0;
+	& override;
 
-protected:
-	KeyControls controls_;
+private:
+	std::stack<Menu> menus_;
 };
-
 }
