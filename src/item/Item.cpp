@@ -1,6 +1,6 @@
 #include "Item.hpp"
 
-namespace sb
+namespace nemo
 {
 
 Item::Item(int id)

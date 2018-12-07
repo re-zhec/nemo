@@ -7,20 +7,8 @@
 
 #include "utility/type/Key.hpp"
 
-namespace sb
+namespace nemo
 {
-
-enum class KeyAction {
-	Up = 0,
-	Down,
-	Left,
-	Right,
-	Select,
-	Cancel,
-	Pause,
-
-	count
-};
 
 /**
  * \brief Configurations for the controls of the game.
@@ -58,28 +46,28 @@ public:
 	void save() const;
 
 	/**
-	 * \brief Get the control associated with a pressed key.
+	 * \brief Get the control associated with an user event.
 	 * 
 	 * For example, if the A, W, D, and S keys are mapped to the left, up, right, 
-	 * and down. This method would return the left command for A, up command for 
-	 * W, etc..
+	 * and down. This method would return the left command for A being pressed, 
+	 * up command for W being pressed, etc..
 	 * 
-	 * \param key   Pressed key.
+	 * \param key   User event.
 	 * 
-	 * \return The action associated with that key. Or nothing if there is none 
-	 * associated with it.
+	 * \return The control associated with that event. Or nothing if there is 
+	 * none associated with it.
 	 */
-	std::optional<KeyAction> convert(const Key key) 
+	std::optional<KeyAction> convert(const sf::Event& event) 
 	const noexcept;
 
 private:
-	struct Up     : public Key { Up    (const sf::Keyboard::Key k); };
-	struct Down   : public Key { Down  (const sf::Keyboard::Key k); };
-	struct Left   : public Key { Left  (const sf::Keyboard::Key k); };
-	struct Right  : public Key { Right (const sf::Keyboard::Key k); };
-	struct Select : public Key { Select(const sf::Keyboard::Key k); };
-	struct Cancel : public Key { Cancel(const sf::Keyboard::Key k); };
-	struct Pause  : public Key { Pause (const sf::Keyboard::Key k); };
+	struct Up     : public Key { Up    (const sf::Keyboard::Key code); };
+	struct Down   : public Key { Down  (const sf::Keyboard::Key code); };
+	struct Left   : public Key { Left  (const sf::Keyboard::Key code); };
+	struct Right  : public Key { Right (const sf::Keyboard::Key code); };
+	struct Select : public Key { Select(const sf::Keyboard::Key code); };
+	struct Cancel : public Key { Cancel(const sf::Keyboard::Key code); };
+	struct Pause  : public Key { Pause (const sf::Keyboard::Key code); };
 
 	///< All keys and what they are mapped to are stored here.
 	boost::container::flat_map< Key, KeyAction, 

@@ -2,12 +2,13 @@
 #include <iomanip>
 #include <boost/container/flat_map.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Event.hpp>
 
 #include "nlohmann/json.hpp"
 #include "utility/type/Key.hpp"
 #include "KeyControls.hpp"
 
-namespace sb
+namespace nemo
 {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,13 +34,13 @@ namespace {
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-KeyControls::Up::Up         (const sf::Keyboard::Key k) : Key(k) {}
-KeyControls::Down::Down     (const sf::Keyboard::Key k) : Key(k) {}
-KeyControls::Left::Left     (const sf::Keyboard::Key k) : Key(k) {}
-KeyControls::Right::Right   (const sf::Keyboard::Key k) : Key(k) {}
-KeyControls::Select::Select (const sf::Keyboard::Key k) : Key(k) {}
-KeyControls::Cancel::Cancel (const sf::Keyboard::Key k) : Key(k) {}
-KeyControls::Pause::Pause   (const sf::Keyboard::Key k) : Key(k) {}
+KeyControls::Up::Up         (const sf::Keyboard::Key code) : Key(code) {}
+KeyControls::Down::Down     (const sf::Keyboard::Key code) : Key(code) {}
+KeyControls::Left::Left     (const sf::Keyboard::Key code) : Key(code) {}
+KeyControls::Right::Right   (const sf::Keyboard::Key code) : Key(code) {}
+KeyControls::Select::Select (const sf::Keyboard::Key code) : Key(code) {}
+KeyControls::Cancel::Cancel (const sf::Keyboard::Key code) : Key(code) {}
+KeyControls::Pause::Pause   (const sf::Keyboard::Key code) : Key(code) {}
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -136,10 +137,13 @@ KeyControls::save() const
 ////////////////////////////////////////////////////////////////////////////////
 
 std::optional<KeyAction> 
-KeyControls::convert(const Key key) 
+KeyControls::convert(const sf::Event& event) 
 const noexcept
 {
-	const auto it = map_.find(key);
+	if (event.type != sf::Event::KeyPressed)
+		return {};
+	
+	const auto it = map_.find(Key(event.key.code));
 
 	if (it == map_.cend()) {
 		// Not a registered key.

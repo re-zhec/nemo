@@ -6,14 +6,13 @@
 #include <optional>
 #include <SFML/Graphics.hpp>
 
-#include "utility/type/MenuOptionID.hpp"
 #include "utility/type/Color.hpp"
-#include "utility/type/XYValue.hpp"
+#include "utility/type/XY.hpp"
 #include "utility/type/RowColumn.hpp"
 #include "utility/adaptor/RC1DConverter.hpp"
 #include "utility/wrapper/sfVector2.hpp"
 
-namespace sb
+namespace nemo
 {
 
 /**
@@ -60,14 +59,14 @@ public:
 	 * \param font_file			Font's filepath.
 	 */
 	Menu(
-		const XYValue pos,
-		const XYValue dim,
+		const XYPair pos,
+		const XYPair dim,
 
 		const Row rows, 
 		const Column cols, 
 
-		const XYValue outer_margins     = { XValue(10.f), YValue(10.f) },
-		const XYValue inner_margins     = { XValue(10.f), YValue(10.f) },
+		const XYPair outer_margins     = { XValue(10.f), YValue(10.f) },
+		const XYPair inner_margins     = { XValue(10.f), YValue(10.f) },
 
 		const bool align_center         = false,
 		const size_t char_sz            = 16,
@@ -101,7 +100,7 @@ public:
 	 * \return A reference to the object itself.
 	 */
 	Menu& 
-	add(const MenuOptionID id, const std::string& txt);
+	add(const int id, const std::string& txt);
 
 	/**
 	 * \brief Remove an option from the menu.
@@ -114,7 +113,7 @@ public:
 	 * \return A reference to the object itself.
 	 */
 	Menu& 
-	remove(const MenuOptionID id);
+	remove(const int id);
 
 	/**
 	 * \brief Change an option's text
@@ -128,7 +127,7 @@ public:
 	 * \return A reference to the object itself.
 	 */
 	Menu& 
-	changeOptionText(const MenuOptionID id, const std::string& txt);
+	changeOptionText(const int id, const std::string& txt);
 
 	/**
 	 * \brief Change an option's colors.
@@ -142,7 +141,7 @@ public:
 	 * \return A reference to the object itself.
 	 */
 	Menu& 
-	changeOptionColor(const MenuOptionID id, const TextBoxColor color);
+	changeOptionColor(const int id, const TextBoxColor color);
 
 	/**
 	 * \brief Checks if the menu is empty.
@@ -201,7 +200,7 @@ public:
 	 * \return The ID of the menu option that the cursor is on, or nothing 
 	 * if the menu is empty.
 	 */
-	std::optional<MenuOptionID> 
+	std::optional<int> 
 	cursorAt() 
 	const;
 
@@ -220,12 +219,12 @@ private:
 		///< Default arguments are bad values that would cause assertion errors
 		// during construction.
 		CtorArgs(
-			const XYValue      pos           = { XValue(-1.f), YValue(-1.f) },
-			const XYValue      dim           = { XValue(-1.f), YValue(-1.f) },
+			const XYPair      pos           = { XValue(-1.f), YValue(-1.f) },
+			const XYPair      dim           = { XValue(-1.f), YValue(-1.f) },
 			const Row          rows          = Row(0),
 			const Column       cols          = Column(0),
-			const XYValue      outer_margins = { XValue(-1.f), YValue(-1.f) },
-			const XYValue      inner_margins = { XValue(-1.f), YValue(-1.f) },
+			const XYPair      outer_margins = { XValue(-1.f), YValue(-1.f) },
+			const XYPair      inner_margins = { XValue(-1.f), YValue(-1.f) },
 			const bool         align_center  = false,
 			const size_t       char_sz       = 0,
 			const TextBoxColor option_color  = { {0,0,0}, {0,0,0}, {0,0,0} },
@@ -234,12 +233,12 @@ private:
 			const std::string& font_file     = ""
 		);
 
-		XYValue      pos_;
-		XYValue      dim_;
+		XYPair      pos_;
+		XYPair      dim_;
 		Row          rows_;
 		Column       cols_;
-		XYValue      outer_margins_;
-		XYValue      inner_margins_;
+		XYPair      outer_margins_;
+		XYPair      inner_margins_;
 		bool         align_center_;
 		size_t       char_sz_;
 		TextBoxColor option_color_;
@@ -253,7 +252,7 @@ private:
 	 */ 
 	struct MenuOption
 	{
-		MenuOptionID id_;    ///< Identifier.
+		int id_;    ///< Identifier.
 		sf::Text     txt_;   ///< Graphical text.
 		TextBoxColor color_; ///< Colorset.
 	};
@@ -294,7 +293,7 @@ private:
 	                            // than the one the cursor is over.
 	TextBoxColor cursor_color_; ///< Colorset of the menu option with the cursor.
 
-	RCPoint cursor_rc_; ///< 0-based row-column location of the menu's cursor.
+	RCPair cursor_rc_; ///< 0-based row-column location of the menu's cursor.
 	size_t char_sz_;    ///< Character size for all menu options' text.
 
 	std::vector<sf::RectangleShape> cells_; ///< Menu options' cells.
@@ -380,7 +379,7 @@ private:
 	 * \var options_.end() is returned.
 	 */
 	auto 
-	find(const MenuOptionID id) 
+	find(const int id) 
 	-> decltype(options_.begin());
 
 	/**

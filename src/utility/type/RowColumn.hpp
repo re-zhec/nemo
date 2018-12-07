@@ -2,7 +2,7 @@
 
 #include "type_safe/strong_typedef.hpp"
 
-namespace sb
+namespace nemo
 {
 
 struct Row 
@@ -27,12 +27,12 @@ struct Column
 	using strong_typedef::strong_typedef;
 };
 
-struct RCPoint
+struct RCPair
 {
 	Row    r_;
 	Column c_;
 
-	RCPoint(const Row r, const Column c)
+	RCPair(const Row& r, const Column& c)
 		: r_(r)
 		, c_(c)
 	{

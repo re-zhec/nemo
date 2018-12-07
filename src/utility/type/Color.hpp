@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics/Color.hpp>
 
-namespace sb
+namespace nemo
 {
 
 struct TextBoxColor

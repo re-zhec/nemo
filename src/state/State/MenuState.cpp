@@ -1,7 +1,13 @@
-#include <array>
-#include <SFML/Graphics/Color.hpp>
+#include <optional>
+#include <memory>
+#include <iostream>
 
-#include "sfMakeColor.hpp"
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Window/Event.hpp>
+
+#include "MenuState.hpp"
+#include "menu/Menu.hpp"
+
 
 namespace nemo
 {
@@ -10,10 +16,9 @@ namespace nemo
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-sf::Color 
-sfMakeColor(const std::array<uint8_t, 4>& rgba)
+MenuState::MenuState(const Menu&& menu)
+	: menu_(menu)
 {
-	return { rgba[0], rgba[1], rgba[2], rgba[3] };
 }
 
 ////////////////////////////////////////////////////////////////////////////////

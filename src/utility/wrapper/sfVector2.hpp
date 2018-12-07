@@ -2,10 +2,10 @@
 
 #include <SFML/System/Vector2.hpp>
 
-#include "utility/type/XYValue.hpp"
+#include "utility/type/XY.hpp"
 
-namespace sb
+namespace nemo
 {
 	sf::Vector2f sfVector2(const XValue x, const YValue y);
-	sf::Vector2f sfVector2(const XYValue xy);
+	sf::Vector2f sfVector2(const XYPair xy);
 }

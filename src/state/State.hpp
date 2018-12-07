@@ -6,19 +6,17 @@
 
 #include "key/KeyControls.hpp"
 
-namespace sb
+namespace nemo
 {
 
-class GameState
+class State
 {
 public:
-	virtual void 
-	handleEvent(const sf::Event& event) 
-	& = 0;
+	virtual std::unique_ptr<State> 
+	handleEvent(const sf::Event& event) = 0;
 	
-	virtual void 
-	update(sf::RenderWindow& window) 
-	& = 0;
+	virtual void
+	update(sf::RenderWindow& window) = 0;
 
 protected:
 	KeyControls controls_;

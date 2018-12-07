@@ -2,7 +2,7 @@
 
 #include "type_safe/strong_typedef.hpp"
 
-namespace sb
+namespace nemo
 {
 
 struct XValue 
@@ -27,54 +27,54 @@ struct YValue
 	using strong_typedef::strong_typedef;
 };
 
-struct XYValue
+struct XYPair
 {
 	XValue x_;
 	YValue y_;
 
-	XYValue(const XValue x, const YValue y)
+	XYPair(const XValue& x, const YValue& y)
 		: x_(x)
 		, y_(y)
 	{
 	}
 
 	bool
-	operator>= (const XYValue rhs)
+	operator>= (const XYPair& rhs)
 	const noexcept
 	{
 		return x_ >= rhs.x_ && y_ >= rhs.y_;
 	}
 
 	bool 
-	operator> (const XYValue rhs)
+	operator> (const XYPair& rhs)
 	const noexcept
 	{
 		return x_ > rhs.x_ && y_ > rhs.y_;
 	}
 
 	bool 
-	operator<= (const XYValue rhs)
+	operator<= (const XYPair& rhs)
 	const noexcept
 	{
 		return x_ <= rhs.x_ && y_ <= rhs.y_;
 	}
 
 	bool 
-	operator< (const XYValue rhs)
+	operator< (const XYPair& rhs)
 	const noexcept
 	{
 		return x_ < rhs.x_ && y_ < rhs.y_;
 	}
 
 	bool 
-	operator== (const XYValue rhs)
+	operator== (const XYPair& rhs)
 	const noexcept
 	{
 		return x_ == rhs.x_ && y_ == rhs.y_;
 	}
 
 	bool 
-	operator!= (const XYValue rhs)
+	operator!= (const XYPair& rhs)
 	const noexcept
 	{
 		return x_ != rhs.x_ || y_ != rhs.y_;

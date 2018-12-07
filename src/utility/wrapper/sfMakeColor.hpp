@@ -3,7 +3,7 @@
 #include <array>
 #include <SFML/Graphics/Color.hpp>
 
-namespace sb
+namespace nemo
 {
 	/**
 	 * \brief Create a sf::Color object out of an array of four integers 

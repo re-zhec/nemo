@@ -4,7 +4,7 @@
 
 #include "utility/type/RowColumn.hpp"
 
-namespace sb
+namespace nemo
 {
 
 /**
@@ -28,7 +28,7 @@ public:
 	 * 
 	 * \return 0-based 1-D index.
 	 */
-	RC1DConverter(Column cols)
+	RC1DConverter(const Column& cols)
 		: cols_(cols)
 	{
 		BOOST_ASSERT(int(cols) > 0);
@@ -43,7 +43,7 @@ public:
 	 * \return 0-based 1-D index.
 	 */
 	auto
-	to1D(const Row r, const Column c)
+	to1D(const Row& r, const Column& c)
 	const noexcept
 	{
 		// Indices are numbered from left to right, down across rows.
@@ -60,7 +60,7 @@ public:
 	 * \return 0-based 1-D index.
 	 */
 	auto
-	to1D(const RCPoint rc)
+	to1D(const RCPair& rc)
 	const noexcept
 	{
 		return to1D(rc.r_, rc.c_);
@@ -74,7 +74,7 @@ public:
 	 * 
 	 * \return Row and column indices.
 	 */
-	RCPoint
+	RCPair
 	toRowColumn(const int idx) 
 	const noexcept
 	{

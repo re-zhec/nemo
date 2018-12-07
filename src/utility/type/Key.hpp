@@ -4,7 +4,7 @@
 
 #include "type_safe/strong_typedef.hpp"
 
-namespace sb
+namespace nemo
 {
 
 struct Key 
@@ -13,6 +13,18 @@ struct Key
 	, type_safe::strong_typedef_op::relational_comparison<Key>
 {
 	using strong_typedef::strong_typedef;
+};
+
+enum class KeyAction {
+	Up = 0,
+	Down,
+	Left,
+	Right,
+	Select,
+	Cancel,
+	Pause,
+
+	count
 };
 
 }

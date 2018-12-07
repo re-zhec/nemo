@@ -3,13 +3,13 @@
 #include <boost/assert.hpp>
 
 #include "nlohmann/json.hpp"
-#include "utility/type/XYValue.hpp"
+#include "utility/type/XY.hpp"
 #include "utility/type/RowColumn.hpp"
 #include "utility/wrapper/sfVector2.hpp"
 #include "utility/wrapper/sfMakeColor.hpp"
 #include "Menu.hpp"
 
-namespace sb
+namespace nemo
 {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -17,12 +17,12 @@ namespace sb
 ////////////////////////////////////////////////////////////////////////////////
 
 Menu::Menu(
-	const XYValue      pos,
-	const XYValue      dim,
+	const XYPair      pos,
+	const XYPair      dim,
 	const Row          rows, 
 	const Column       cols,
-	const XYValue      outer_margins,
-	const XYValue      inner_margins,
+	const XYPair      outer_margins,
+	const XYPair      inner_margins,
 	const bool         align_center,
 	const size_t       char_sz,
 	const TextBoxColor option_color,
@@ -39,7 +39,7 @@ Menu::Menu(
 	, cursor_rc_({ Row(0), Column(0) })
 	, char_sz_(char_sz)	
 {
-	const auto x0y0 = XYValue(XValue(0.f), YValue(0.f));
+	const auto x0y0 = XYPair(XValue(0.f), YValue(0.f));
 
 	BOOST_ASSERT(pos >= x0y0);
 	BOOST_ASSERT(dim >= x0y0);
@@ -122,7 +122,7 @@ Menu::Menu(const std::string& file)
 ////////////////////////////////////////////////////////////////////////////////
 
 Menu& 
-Menu::add(const MenuOptionID id, const std::string& txt)
+Menu::add(const int id, const std::string& txt)
 {
 	// Make sure there is no other menu option that has the new ID.
 	const auto it = find(id);
@@ -146,7 +146,7 @@ Menu::add(const MenuOptionID id, const std::string& txt)
 ////////////////////////////////////////////////////////////////////////////////
 
 Menu& 
-Menu::remove(const MenuOptionID id)
+Menu::remove(const int id)
 {
 	// Delete the option.
 	auto iter = find(id);
@@ -177,7 +177,7 @@ Menu::remove(const MenuOptionID id)
 ////////////////////////////////////////////////////////////////////////////////
 
 Menu& 
-Menu::changeOptionText(const MenuOptionID id, const std::string& txt)
+Menu::changeOptionText(const int id, const std::string& txt)
 {
 	const auto it = find(id);
 	BOOST_ASSERT(it != options_.cend());
@@ -190,7 +190,7 @@ Menu::changeOptionText(const MenuOptionID id, const std::string& txt)
 ////////////////////////////////////////////////////////////////////////////////
 
 Menu& 
-Menu::changeOptionColor(const MenuOptionID id, const TextBoxColor color)
+Menu::changeOptionColor(const int id, const TextBoxColor color)
 {
 	const auto it = find(id);
 	BOOST_ASSERT(it != options_.cend());
@@ -329,7 +329,7 @@ Menu::draw(sf::RenderWindow& window)
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-std::optional<MenuOptionID>
+std::optional<int>
 Menu::cursorAt()
 const
 {
@@ -560,7 +560,7 @@ noexcept
 ////////////////////////////////////////////////////////////////////////////////
 
 auto 
-Menu::find(const MenuOptionID id) 
+Menu::find(const int id) 
 -> decltype(options_.begin())
 {
 	auto it = std::find_if(options_.begin(), options_.end(),
@@ -623,22 +623,22 @@ const
 
 	try {
 		// Extract the customizations.
-		const auto pos = XYValue(
+		const auto pos = XYPair(
 			XValue(js.at(position).at("x")), 
 			YValue(js.at(position).at("y"))
 		);
 
-		const auto dim = XYValue( 
+		const auto dim = XYPair( 
 			XValue(js.at(dimensions).at("width")), 
 			YValue(js.at(dimensions).at("height")) 
 		);
 
-		const auto outer_margins = XYValue(
+		const auto outer_margins = XYPair(
 			XValue(js.at(box).at(margins).at(horizontal)),
 			YValue(js.at(box).at(margins).at(vertical))
 		);
 
-		const auto inner_margins = XYValue(
+		const auto inner_margins = XYPair(
 			XValue(js.at(options).at(margins).at(horizontal)),
 			YValue(js.at(options).at(margins).at(vertical))
 		);
@@ -693,12 +693,12 @@ const
 ////////////////////////////////////////////////////////////////////////////////
 
 Menu::CtorArgs::CtorArgs(
-	const XYValue      pos,
-	const XYValue      dim,
+	const XYPair      pos,
+	const XYPair      dim,
 	const Row          rows,
 	const Column       cols,
-	const XYValue      outer_margins,
-	const XYValue      inner_margins,
+	const XYPair      outer_margins,
+	const XYPair      inner_margins,
 	const bool         align_center,
 	const size_t       char_sz,
 	const TextBoxColor option_color,

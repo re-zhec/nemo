@@ -7,7 +7,7 @@
 
 #include "Item.hpp"
 
-namespace sb
+namespace nemo
 {
 
 /**
