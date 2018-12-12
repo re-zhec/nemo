@@ -1,0 +1,152 @@
+#include <algorithm>
+
+#include "Menu.hpp"
+#include "../../visitor/MenuCursor.hpp"
+
+namespace nemo
+{
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+void
+Menu::add(const std::shared_ptr<MenuEntry> entry)
+{
+	entry->setParent(shared_from_this());
+	entries_.push_back(entry);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+void
+Menu::moveUp() 
+noexcept
+{
+	move(Direction::Up);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+void
+Menu::moveDown()
+noexcept
+{
+	move(Direction::Down);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+void
+Menu::moveLeft()
+noexcept
+{
+	move(Direction::Left);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+void 
+Menu::moveRight()
+noexcept
+{
+	move(Direction::Right);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::shared_ptr<MenuEntry>>
+Menu::getChildren()
+const
+{
+	return entries_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<MenuEntry>
+Menu::select()
+const
+{
+	return entries_[cursor_idx_];
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+void
+Menu::accept(MenuCursor& cursor)
+{
+	cursor.visit(*this);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+void 
+Menu::move(const Direction dir)
+noexcept
+{
+	if (entries_.empty()) {
+		// No menu options => no cursor => no movement.
+		return;
+	}	
+
+	// The cursor should be able to wrap around the ends of the menu.
+	const auto last = static_cast<decltype(cursor_idx_)>( entries_.size() ) - 1;
+
+	switch (dir) {
+		// Up/down changes the row.
+		case Direction::Up: {
+			const auto new_idx = cursor_idx_ - int(cols_);
+			cursor_idx_ = new_idx >= 0 
+				? new_idx
+				: cursor_idx_ != 0
+					? 0 
+					: last;
+			break;
+		}
+
+		case Direction::Down: {
+			const auto new_idx = cursor_idx_ + int(cols_);
+			cursor_idx_ = new_idx <= last 
+				? new_idx 
+				: cursor_idx_ != last 
+					? last
+					: 0;
+			break;
+		}
+
+		// Left/right changes the column.
+		case Direction::Right: {
+			cursor_idx_ = cursor_idx_ < last ? cursor_idx_ + 1 : 0;
+			break;
+		}
+		
+		case Direction::Left: {
+			cursor_idx_ = cursor_idx_ > 0 ? cursor_idx_ - 1 : last;
+			break;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+}
