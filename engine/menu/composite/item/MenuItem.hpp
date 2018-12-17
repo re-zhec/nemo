@@ -1,8 +1,6 @@
 #pragma once
 
-#include <string>
-
-#include "menu/composite/MenuEntry.hpp"
+#include "../MenuEntry.hpp"
 
 namespace nemo
 {
@@ -17,14 +15,6 @@ class MenuItem : public MenuEntry
 public:
 
 	using MenuEntry::MenuEntry;
-
-	virtual std::shared_ptr<MenuEntry>
-	select()
-	const override;
-
-	virtual std::vector<std::shared_ptr<MenuEntry>>
-	getChildren()
-	const override;
 
 	virtual void
 	accept(MenuCursor& cursor)

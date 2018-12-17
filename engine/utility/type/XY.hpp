@@ -32,7 +32,10 @@ struct XYPair
 	XValue x_;
 	YValue y_;
 
-	XYPair(const XValue& x, const YValue& y)
+	XYPair(
+		const XValue& x = XValue(0.f), 
+		const YValue& y = YValue(0.f)
+	)
 		: x_(x)
 		, y_(y)
 	{

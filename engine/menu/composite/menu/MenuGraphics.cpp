@@ -1,7 +1,9 @@
 #include <fstream>
+#include <iostream>
 #include <boost/assert.hpp>
 
 #include "MenuGraphics.hpp"
+#include "../MenuEntry.hpp"
 #include "nlohmann/json.hpp"
 #include "utility/wrapper/sfVector2.hpp"
 #include "utility/wrapper/sfMakeColor.hpp"
@@ -14,22 +16,30 @@ namespace nemo
 ////////////////////////////////////////////////////////////////////////////////
  
 MenuGraphics::MenuGraphics(
+	const std::string&              title,
 	const XYPair&                   pos,
 	const XYPair&                   dim,
 	const XYPair&                   margins,
 	const TextBoxColors             colors,
 	const std::shared_ptr<sf::Font> font,
 	const int                       font_sz,
-	const bool                      center,
+	const AlignConfig               align,
 	const Row&                      rows,
 	const Column&                   cols
 )
-	: MenuEntryGraphics(pos, dim, margins, colors, font, font_sz, center)
+	: MenuEntryGraphics(
+		title, 
+		pos, 
+		dim, 
+		margins, 
+		colors, 
+		font, 
+		font_sz, 
+		align
+	)
 	, rows_(rows)
 	, cols_(cols)
 {
-	BOOST_ASSERT(rows > 0);
-	BOOST_ASSERT(cols > 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -37,10 +47,11 @@ MenuGraphics::MenuGraphics(
 ////////////////////////////////////////////////////////////////////////////////
 
 MenuGraphics::MenuGraphics(
+	const std::string&              title,
 	const std::string&              file,
 	const std::shared_ptr<sf::Font> font
 )
-	: MenuGraphics(parse(file), font)
+	: MenuGraphics(title, parse(file), font)
 {
 }
 
@@ -49,11 +60,9 @@ MenuGraphics::MenuGraphics(
 ////////////////////////////////////////////////////////////////////////////////
 
 void 
-MenuGraphics::update(sf::RenderWindow& window)
+MenuGraphics::update(MenuEntry& entry, sf::RenderWindow& window)
 {
-	// Draw the menu box.
-	window.draw(cell_);
-	window.draw(text_);
+	drawOn(window);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,17 +70,19 @@ MenuGraphics::update(sf::RenderWindow& window)
 ////////////////////////////////////////////////////////////////////////////////
 
 MenuGraphics::MenuGraphics(
+	const std::string&              title,
 	const ParseInfo&                info,
 	const std::shared_ptr<sf::Font> font
 )
 	: MenuGraphics(
+		title,
 		info.pos_,
 		info.dim_,
 		info.margins_,
 		info.colors_,
 		font,
 		info.font_sz_,
-		info.center_,
+		info.align_,
 		info.rows_,
 		info.cols_
 	)
@@ -107,6 +118,11 @@ const
 			YValue(js.at("margins").at("vertical"))
 		);
 
+		const auto align = AlignConfig(
+			std::string(js.at("alignment").at("horizontal")),
+			std::string(js.at("alignment").at("vertical"))
+		);
+
 		const auto colors = TextBoxColors(
 			sfMakeColor(js.at("colors").at("text")),
 			sfMakeColor(js.at("colors").at("background")),
@@ -114,7 +130,6 @@ const
 		);
 
 		const auto font_sz = js.at("font").at("size");
-		const auto center  = js.at("center");
 		const auto rows    = Row(js.at("rows"));
 		const auto cols    = Column(js.at("columns"));
 
@@ -124,7 +139,7 @@ const
 			margins,
 			colors,
 			font_sz,
-			center,
+			align,
 			rows,
 			cols
 		);
@@ -140,23 +155,23 @@ const
 ////////////////////////////////////////////////////////////////////////////////
 
 MenuGraphics::ParseInfo::ParseInfo(
-	const XYPair&        pos,
-	const XYPair&        dim,
-	const XYPair&        margins,
-	const TextBoxColors  colors,
-	const int            font_sz,
-	const bool           center,
-	const Row&           rows,
-	const Column&        cols
+	const XYPair&       pos,
+	const XYPair&       dim,
+	const XYPair&       margins,
+	const TextBoxColors colors,
+	const int           font_sz,
+	const AlignConfig   align,
+	const Row&          rows,
+	const Column&       cols
 )
-	: pos_     (pos)
-	, dim_     (dim)
-	, margins_ (margins)
-	, colors_  (colors)
-	, font_sz_ (font_sz)
-	, center_  (center)
-	, rows_    (rows)
-	, cols_    (cols)
+	: pos_    (pos)
+	, dim_    (dim)
+	, margins_(margins)
+	, colors_ (colors)
+	, font_sz_(font_sz)
+	, align_  (align)
+	, rows_   (rows)
+	, cols_   (cols)
 {
 }
 

@@ -1,3 +1,5 @@
+#include <boost/assert.hpp>
+
 #include "MenuEntry.hpp"
 #include "MenuEntryGraphics.hpp"
 
@@ -9,7 +11,7 @@ namespace nemo
 ////////////////////////////////////////////////////////////////////////////////
 
 MenuEntry::MenuEntry(
-	const int                                id,
+	const MenuEntryID                        id,
 	const std::shared_ptr<MenuEntryGraphics> graphics
 )
 	: id_      (id)
@@ -21,18 +23,8 @@ MenuEntry::MenuEntry(
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void
-MenuEntry::update(sf::RenderWindow& window, const KeyAction action)
-{
-	graphics_->update(window);	
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-
 std::shared_ptr<MenuEntry>
-MenuEntry::getParent()
+MenuEntry::parent()
 const
 {
 	return parent_;
@@ -43,20 +35,9 @@ const
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-MenuEntry::setParent(std::shared_ptr<MenuEntry> parent)
-noexcept
+MenuEntry::update(sf::RenderWindow& window)
 {
-	parent_ = parent;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-
-void 
-MenuEntry::setText(const std::string& text)
-{
-	graphics_->setText(text);
+	graphics_->update(*this, window);	
 }
 
 ////////////////////////////////////////////////////////////////////////////////

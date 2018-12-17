@@ -5,66 +5,87 @@
 #include <vector>
 #include <SFML/Graphics/RenderWindow.hpp>
 
-#include "utility/type/Key.hpp"
+#include "utility/type/XY.hpp"
 
 namespace nemo
 {
 
-class MenuCursor;
-class MenuEntryGraphics;
+class MenuCursor;        // Forward declaration.
+class MenuEntryGraphics; // Forward declaration.
 
+////////////////////////////////////////////////////////////////////////////////
+///
+/// @brief Abstract class for a menu entry.
+///
+////////////////////////////////////////////////////////////////////////////////
 class MenuEntry : public std::enable_shared_from_this<MenuEntry>
 {
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
 public:
 
+	using MenuEntryID = int;
+
+	/////////////////////////////////////////////////////
+	/// @brief Construct a menu entry.
+	///
+	/// @param id           ID for the menu entry.
+	/// @param text         Text to display.
+	/// @param pos          Top left position.
+	/// @param graphics     Graphics component
+	/////////////////////////////////////////////////////
 	MenuEntry(
-		const int                                id,
+		const MenuEntryID                        id,
 		const std::shared_ptr<MenuEntryGraphics> graphics
 	);
 
+	/////////////////////////////////////////////////////
+	/// @brief Destructor
+	/////////////////////////////////////////////////////
 	virtual
 	~MenuEntry() {}
 
-	void
-	update(sf::RenderWindow& window, const KeyAction action);
-
+	/////////////////////////////////////////////////////
+	/// @brief Get the parent of this menu entry.
+	///
+	/// @return Parent entry.
+	/////////////////////////////////////////////////////
 	std::shared_ptr<MenuEntry>
-	getParent()
+	parent()
 	const;
 
-	void
-	setParent(std::shared_ptr<MenuEntry> parent)
-	noexcept;
-
-	void 
-	setText(const std::string& text);
-
-	virtual std::vector<std::shared_ptr<MenuEntry>>
-	getChildren()
-	const = 0;
-
-	virtual std::shared_ptr<MenuEntry>
-	select() 
-	const = 0;
-
+	/////////////////////////////////////////////////////
+	/// @brief
+	/////////////////////////////////////////////////////
 	virtual void
 	accept(MenuCursor& cursor) = 0;
+
+	/////////////////////////////////////////////////////
+	/// @brief
+	/////////////////////////////////////////////////////
+	void
+	update(sf::RenderWindow& window);
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 private:
-	int                        id_;
-	std::shared_ptr<MenuEntry> parent_;
+
+	/////////////////////////////////////////////////////
+	// Member attributes
+	/////////////////////////////////////////////////////
+	MenuEntryID id_; ///< ID.
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 protected:
-	std::shared_ptr<MenuEntryGraphics> graphics_;
+	/////////////////////////////////////////////////////
+	// Member attributes
+	/////////////////////////////////////////////////////
+	std::shared_ptr<MenuEntryGraphics> graphics_; ///< Graphics component.	
+	std::shared_ptr<MenuEntry>         parent_;   ///< Parent menu entry.
+	
 };
 
 }

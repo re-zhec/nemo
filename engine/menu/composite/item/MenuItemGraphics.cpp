@@ -1,9 +1,13 @@
 #include <fstream>
+#include <boost/algorithm/string.hpp>
 #include <boost/assert.hpp>
+#include <SFML/Graphics/Text.hpp>
 
 #include "MenuItemGraphics.hpp"
+#include "../MenuEntry.hpp"
 #include "nlohmann/json.hpp"
 #include "utility/wrapper/sfMakeColor.hpp"
+#include "utility/wrapper/sfVector2.hpp"
 
 namespace nemo
 {
@@ -13,10 +17,9 @@ namespace nemo
 ////////////////////////////////////////////////////////////////////////////////
 
 void 
-MenuItemGraphics::update(sf::RenderWindow& window)
+MenuItemGraphics::update(MenuEntry& entry, sf::RenderWindow& window)
 {
-	window.draw(cell_);
-	window.draw(text_);
+	drawOn(window);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -24,12 +27,13 @@ MenuItemGraphics::update(sf::RenderWindow& window)
 ////////////////////////////////////////////////////////////////////////////////
 
 MenuItemGraphics::MenuItemGraphics(
+	const std::string&              text,
 	const std::string&              file,
 	const XYPair&                   pos,
 	const XYPair&                   dim,
 	const std::shared_ptr<sf::Font> font
 )
-	: MenuItemGraphics(parse(file), pos, dim, font)
+	: MenuItemGraphics(text, parse(file), pos, dim, font)
 {
 }
 
@@ -38,19 +42,21 @@ MenuItemGraphics::MenuItemGraphics(
 ////////////////////////////////////////////////////////////////////////////////
 
 MenuItemGraphics::MenuItemGraphics(
-	const ParseInfo&                info, 
+	const std::string&              text,
+	const ParseInfo&                info,
 	const XYPair&                   pos,
 	const XYPair&                   dim,
 	const std::shared_ptr<sf::Font> font
 )
 	: MenuItemGraphics(
+		text,
 		pos,
 		dim,
 		info.margins_,
 		info.colors_,
 		font,
 		info.font_sz_,
-		info.center_
+		info.align_
 	)
 {
 }
@@ -80,14 +86,18 @@ const
 			sfMakeColor(js.at("colors").at("border"))
 		);
 
+		const auto align = AlignConfig(
+			std::string(js.at("alignment").at("horizontal")),
+			std::string(js.at("alignment").at("vertical"))
+		);
+
 		const auto font_sz = js.at("font").at("size");
-		const auto center  = js.at("center");
 
 		return ParseInfo(
 			margins,
 			colors,
 			font_sz,
-			center
+			align
 		);
 	}
 	catch (const nlohmann::json::out_of_range& e) {
@@ -104,12 +114,12 @@ MenuItemGraphics::ParseInfo::ParseInfo(
 	const XYPair&        margins,
 	const TextBoxColors  colors,
 	const int            font_sz,
-	const bool           center
+	const AlignConfig    align
 )
-	: margins_ (margins)
-	, colors_  (colors)
-	, font_sz_ (font_sz)
-	, center_  (center)
+	: margins_(margins)
+	, colors_ (colors)
+	, font_sz_(font_sz)
+	, align_  (align)
 {
 }
 

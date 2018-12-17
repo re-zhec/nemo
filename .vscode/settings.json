@@ -81,6 +81,9 @@
         "typeindex": "cpp",
         "variant": "cpp",
         "set": "cpp",
-        "xthread": "cpp"
+        "xthread": "cpp",
+        "unordered_set": "cpp",
+        "mutex": "cpp",
+        "stack": "cpp"
     }
 }

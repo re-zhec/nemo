@@ -1,6 +1,6 @@
 EXEDIR := build
 OBJDIR := obj
-SRCDIR := src
+SRCDIR := engine
 
 EXE := $(EXEDIR)/game.exe
 LOG := $(wildcard $(EXEDIR)/*.log)

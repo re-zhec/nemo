@@ -24,7 +24,7 @@ std::unique_ptr<Scene>
 TitleScene::update(sf::RenderWindow& window)
 const
 {
-	menu_->update(window, nemo::KeyAction::Cancel);
+	menu_->update(window);
 	return nullptr;
 }
 
@@ -41,20 +41,9 @@ const
 
 	auto menu = std::make_shared<Menu>(
 		0,
-		std::make_shared<MenuGraphics>("data/menu/title/menu.json", font)
+		std::make_shared<MenuGraphics>("", "data/menu/title/menu.json", font)
 	);
 
-	auto settings = std::make_shared<MenuItem>(
-		1,
-		std::make_shared<MenuItemGraphics>(
-			"data/menu/title/item.json", 
-			XYPair(XValue(20.f), YValue(20.f)),
-			XYPair(XValue(300.f), YValue(100.f)),
-			font
-		)
-	);
-
-	menu->add(settings);
 	return menu;
 }
 

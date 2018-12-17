@@ -1,0 +1,43 @@
+{
+	"position": {
+		"x": 40, 
+		"y": 40
+	},
+	"dimensions": {
+		"width": 1000, 
+		"height": 100
+	},
+	"box": {
+		"margins": {
+			"horizontal": 20,
+			"vertical": 10
+		},
+		"colors": {
+			"background": [251, 245, 240, 255],
+			"border": [243, 200, 214, 255]
+		}
+	},
+	"options": {
+		"margins": {
+			"horizontal": 20,
+			"vertical": 10
+		},
+		"rows": 1,
+		"columns": 5,
+		"center": true,
+		"size": 18,
+		"colors": {
+			"text": [43, 7, 0, 255],
+			"background": [249, 231, 228, 255],
+			"border": [229, 197, 191, 255]
+		}
+	},
+	"cursor": {
+		"colors": {
+			"text": [244, 50, 116, 255],
+			"background": [250, 250, 250, 255],
+			"border": [229, 197, 191, 255]
+		}
+	},
+	"font": "font/Montserrat-Regular.ttf"
+}

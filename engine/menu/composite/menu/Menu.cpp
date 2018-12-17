@@ -10,10 +10,30 @@ namespace nemo
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+// void
+// Menu::add(const int id, const std::string& text)
+// {
+// 	const auto option_dim = XYPair(
+// 		(dim_.x_ - XValue(2.f) * graphics_->margins_.x_) / XValue(int(cols_)),
+// 		(dim_.y_ - YValue(2.f) * margins_.y_) / YValue(int(rows_))
+// 	);
+
+// 	const auto r = YValue(entries_.size() / int(rows_));
+// 	const auto c = XValue(entries_.size() % int(cols_));
+// 	const auto option_pos = XYPair(c * option_dim.x_, r * option_dim.y_);
+// 	std::shared_Ptr<MenuItem> item = MenuItem(
+// 		id, option_pos, option_dim, 	
+// 	)
+// }
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 void
-Menu::add(const std::shared_ptr<MenuEntry> entry)
+Menu::add(const MenuEntryID id, const std::shared_ptr<MenuEntry> entry)
 {
-	entry->setParent(shared_from_this());
+	parent_ = shared_from_this();
 	entries_.push_back(entry);
 }
 
@@ -23,7 +43,7 @@ Menu::add(const std::shared_ptr<MenuEntry> entry)
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-Menu::moveUp() 
+Menu::cursorUp() 
 noexcept
 {
 	move(Direction::Up);
@@ -34,7 +54,7 @@ noexcept
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-Menu::moveDown()
+Menu::cursorDown()
 noexcept
 {
 	move(Direction::Down);
@@ -45,7 +65,7 @@ noexcept
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-Menu::moveLeft()
+Menu::cursorLeft()
 noexcept
 {
 	move(Direction::Left);
@@ -56,7 +76,7 @@ noexcept
 ////////////////////////////////////////////////////////////////////////////////
 
 void 
-Menu::moveRight()
+Menu::cursorRight()
 noexcept
 {
 	move(Direction::Right);
@@ -67,21 +87,10 @@ noexcept
 ////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::shared_ptr<MenuEntry>>
-Menu::getChildren()
+Menu::children()
 const
 {
 	return entries_;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<MenuEntry>
-Menu::select()
-const
-{
-	return entries_[cursor_idx_];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
