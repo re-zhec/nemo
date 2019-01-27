@@ -4,7 +4,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 
-#include "scene/title/TitleScene.hpp"
+#include "test/test.hpp"
 
 int main()
 {
@@ -16,14 +16,10 @@ int main()
 	window.setKeyRepeatEnabled(false);
 	// BOOST_LOG_TRIVIAL(debug) << "Window opened.";
 
-	std::unique_ptr<nemo::Scene> scene = std::make_unique<nemo::TitleScene>();
-
 	// Run the program as long as its window is open.
 	while (window.isOpen())
 	{
 		window.clear(sf::Color::White);
-		scene->update(window);
-		window.display();
 
 		// Check for pending events.
 		if (sf::Event event;
@@ -52,6 +48,9 @@ int main()
 					break;
 			}
 		}
+
+		nemo::test(window);
+		window.display();
 	}
 
 	return EXIT_SUCCESS;

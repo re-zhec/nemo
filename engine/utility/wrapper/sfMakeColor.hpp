@@ -6,13 +6,14 @@
 namespace nemo
 {
 	/**
-	 * \brief Create a sf::Color object out of an array of four integers 
-	 * representing RGB attributes.
+	 * @brief Create a SFML Color object out of an array of four integers 
+	 * representing RGBA attributes.
 	 * 
-	 * \param rgba    An array containing RGB values in this order: red, green, 
-	 *                blue, and alpha (opacity).
+	 * @param rgba     - An array containing RGBA values in this order: red, 
+	 *                   green, blue, and alpha (opacity).
 	 * 
-	 * \return An SFML Color object
+	 * @return SFML Color object.
 	 */
-	sf::Color sfMakeColor(const std::array<uint8_t, 4>& rgba);
+	sf::Color
+	sfMakeColor(const std::array<uint8_t, 4>& rgba);
 }

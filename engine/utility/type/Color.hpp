@@ -5,17 +5,29 @@
 namespace nemo
 {
 
+struct BorderColor {
+	sf::Color v_;
+};
+
+struct BackgroundColor {
+	sf::Color v_;
+};
+
+struct TextColor {
+	sf::Color v_;
+};
+
 struct TextBoxColors
 {
-	sf::Color text_;
-	sf::Color backgnd_;
-	sf::Color border_;
+	BorderColor     border_;
+	BackgroundColor backgnd_;
+	TextColor       text_;
 
-	TextBoxColors(const sf::Color txt, const sf::Color backgnd, 
-		const sf::Color border)
-		: text_    (txt)
+	TextBoxColors(const BorderColor border, const BackgroundColor backgnd, 
+		const TextColor text)
+		: border_ (border)
 		, backgnd_(backgnd)
-		, border_ (border)
+		, text_   (text)
 	{
 	}
 };

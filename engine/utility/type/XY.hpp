@@ -82,6 +82,41 @@ struct XYPair
 	{
 		return x_ != rhs.x_ || y_ != rhs.y_;
 	}
+
+	XYPair
+	operator+ (const XYPair& rhs)
+	const
+	{
+		return {x_ + rhs.x_, y_ + rhs.y_}; 
+	}
+
+	XYPair
+	operator- (const XYPair& rhs)
+	const
+	{
+		return {x_ - rhs.x_, y_ - rhs.y_}; 
+	}
+
+	XYPair
+	operator* (const XYPair& rhs)
+	const
+	{
+		return {x_ * rhs.x_, y_ * rhs.y_}; 
+	}
+
+	XYPair
+	operator* (const float scalar)
+	const
+	{
+		return {x_ * XValue(scalar), y_ * YValue(scalar)}; 
+	}
+
+	XYPair
+	operator/ (const XYPair& rhs)
+	const
+	{
+		return {x_ / rhs.x_, y_ / rhs.y_}; 
+	}
 };
 
 }

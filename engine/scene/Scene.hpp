@@ -9,7 +9,8 @@ namespace nemo
 class Scene
 {
 public:
-	virtual std::unique_ptr<Scene>
+	virtual
+	std::shared_ptr<Scene>
 	update(sf::RenderWindow& window)
 	const = 0;
 };

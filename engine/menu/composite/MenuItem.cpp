@@ -1,21 +1,19 @@
 #include "MenuItem.hpp"
-#include "../../visitor/MenuCursor.hpp"
 
 namespace nemo
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-void
-MenuItem::accept(MenuCursor& cursor)
+std::shared_ptr<MenuEntry>
+MenuItem::setCaption(const std::string& caption)
 {
-	cursor.visit(*this);
+	constexpr auto vt_center = true;
+	return makeCaption(caption, vt_center);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
 }
