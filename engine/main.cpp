@@ -1,55 +1,57 @@
 #include <memory>
 #include <stack>
+#include <optional>
 #include <utility>
 #include <iostream>
 #include <SFML/Graphics.hpp>
 
-#include "test/test.hpp"
+#include "Game.hpp"
+#include "key/KeyControls.hpp"
 
 int main()
 {
-	// initBoostLogging();
+	nemo::Game game;
+	nemo::KeyControls controls_;
 
 	// Open a window.
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Nemo");
 	window.setFramerateLimit(30);
 	window.setKeyRepeatEnabled(false);
-	// BOOST_LOG_TRIVIAL(debug) << "Window opened.";
 
 	// Run the program as long as its window is open.
-	while (window.isOpen())
-	{
+	while (window.isOpen()) {
 		window.clear(sf::Color::White);
+		std::optional<nemo::KeyAction> input;
 
 		// Check for pending events.
 		if (sf::Event event;
 			window.pollEvent(event))
 		{
 			switch (event.type) {
-				// These cases apply to any state of the game.
 				case sf::Event::Closed:
-					// Close the window.
-					// BOOST_LOG_TRIVIAL(debug) << "Window closed.";
 					window.close();
-					break;
+				break;
 
 				case sf::Event::LostFocus:
-					// Pause the game.
-					// BOOST_LOG_TRIVIAL(debug) << "Window lost focus.";
-					break;
+					game.pause();
+				break;
 
 				case sf::Event::GainedFocus:
-					// Resume the game.
-					// BOOST_LOG_TRIVIAL(debug) << "Window gained focus.";
-					break;
+					game.resume();
+				break;
 
+				case sf::Event::KeyPressed: {
+					const nemo::Key pressed_key(event.key.code);
+					input = { controls_.convert(nemo::Key(event.key.code)) };
+				}
+				break;
+				
 				default:
-					// The other events depend on the current state of the game.
-					break;
+				break;
 			}
 		}
 
-		nemo::test(window);
+		game.update(input, window);
 		window.display();
 	}
 

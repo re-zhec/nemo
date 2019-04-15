@@ -12,12 +12,12 @@ namespace nemo
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace {
-	// If you want to change a key name, the path of the JSON file storing the 
-	// configurations, or the indentation, then change the literals below.
+	// For the json file storing the configurations, if you want to change a key 
+	// name, the path of the file, or the indentation, then change the literals 
+	// below.
 	constexpr auto key_up     = "up";
 	constexpr auto key_down   = "down";
 	constexpr auto key_left   = "left";
@@ -31,19 +31,6 @@ namespace {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-
-KeyControls::Up::Up         (const sf::Keyboard::Key code) : Key(code) {}
-KeyControls::Down::Down     (const sf::Keyboard::Key code) : Key(code) {}
-KeyControls::Left::Left     (const sf::Keyboard::Key code) : Key(code) {}
-KeyControls::Right::Right   (const sf::Keyboard::Key code) : Key(code) {}
-KeyControls::Select::Select (const sf::Keyboard::Key code) : Key(code) {}
-KeyControls::Cancel::Cancel (const sf::Keyboard::Key code) : Key(code) {}
-KeyControls::Pause::Pause   (const sf::Keyboard::Key code) : Key(code) {}
-
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
 KeyControls::KeyControls()
@@ -58,7 +45,6 @@ KeyControls::KeyControls()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
 KeyControls::~KeyControls()
@@ -67,14 +53,13 @@ KeyControls::~KeyControls()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
 void
 KeyControls::load()
 {
 	try {
-		// Parse the JSON file.
+		// Parse the json file.
 		std::ifstream ifs(path);
 		ifs.exceptions(std::ios::failbit | std::ios::badbit);
 		nlohmann::json js;
@@ -103,11 +88,11 @@ KeyControls::load()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
 void
-KeyControls::save() const
+KeyControls::save()
+const
 {
 	nlohmann::json js;
 	
@@ -133,17 +118,13 @@ KeyControls::save() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
 std::optional<KeyAction> 
-KeyControls::convert(const sf::Event& event) 
+KeyControls::convert(const Key& k) 
 const noexcept
 {
-	if (event.type != sf::Event::KeyPressed)
-		return {};
-	
-	const auto it = map_.find(Key(event.key.code));
+	const auto it = map_.find(k);
 
 	if (it == map_.cend()) {
 		// Not a registered key.
@@ -155,7 +136,6 @@ const noexcept
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
 void 
@@ -169,6 +149,10 @@ KeyControls::set(
 	Pause  pause
 ) noexcept
 {
+	// This is to prevent lingering mappings when new keys are used
+	map_.clear();
+
+	// New mappings.
 	map_[up]     = KeyAction::Up;
 	map_[down]   = KeyAction::Down;
 	map_[left]   = KeyAction::Left;

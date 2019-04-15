@@ -1,4 +1,4 @@
-#include "MenuEntry.hpp"
+#include "MenuNode.hpp"
 #include "utility/wrapper/sfVector2.hpp"
 
 namespace nemo
@@ -7,13 +7,13 @@ namespace nemo
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-MenuEntry::MenuEntry(
+MenuNode::MenuNode(
 	const XYPair&         pos,
 	const XYPair&         dim,
 	const XYPair&         padding,
 	const TextBoxColors   colors,
-	const FontProperties& font
-)
+	const FontProperties& font)
+	
 	: font_  (font)
 	, colors_(colors)
 {
@@ -26,15 +26,15 @@ MenuEntry::MenuEntry(
 	BOOST_ASSERT(font.size_ > 0);
 
 	// Create the entry cell.
-	cell_.setSize(sfVector2(dim));
-	cell_.setPosition(sfVector2(pos));
+	cell_.setSize( sfVector2(dim) );
+	cell_.setPosition( sfVector2(pos) );
 	cell_.setOutlineThickness(-1.f);
 	cell_.setOutlineColor(colors.border_.v_);
 	cell_.setFillColor(colors.backgnd_.v_);
 
 	// Account for padding. Entry content will be placed in the allocated space.
-	space_.setSize(sfVector2(dim - padding - padding));
-	space_.setPosition(sfVector2(pos + padding));
+	space_.setSize( sfVector2(dim - padding - padding) );
+	space_.setPosition( sfVector2(pos + padding) );
 
 	// Set future caption's color.
 	caption_.setFillColor(colors.text_.v_);
@@ -43,8 +43,8 @@ MenuEntry::MenuEntry(
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<MenuEntry>
-MenuEntry::setColors(const TextBoxColors colors)
+std::shared_ptr<MenuNode>
+MenuNode::setColors(const TextBoxColors colors)
 {
 	cell_.setOutlineColor(colors.border_.v_);
 	cell_.setFillColor(colors.backgnd_.v_);
@@ -55,8 +55,8 @@ MenuEntry::setColors(const TextBoxColors colors)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<MenuEntry>
-MenuEntry::setPosition(const XYPair& pos)
+std::shared_ptr<MenuNode>
+MenuNode::setPosition(const XYPair& pos)
 {
 	const auto pos_v = sfVector2(pos);
 	const auto padding_v = space_.getPosition() - cell_.getPosition();
@@ -70,7 +70,7 @@ MenuEntry::setPosition(const XYPair& pos)
 ////////////////////////////////////////////////////////////////////////////////
 
 XYPair
-MenuEntry::getPosition()
+MenuNode::getPosition()
 const noexcept
 {
 	const auto pos_v = cell_.getPosition();
@@ -80,8 +80,8 @@ const noexcept
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<MenuEntry>
-MenuEntry::setSize(const XYPair& dim)
+std::shared_ptr<MenuNode>
+MenuNode::setSize(const XYPair& dim)
 {
 	const auto dim_v = sfVector2(dim);
 	const auto padding_v = space_.getPosition() - cell_.getPosition();
@@ -98,7 +98,7 @@ MenuEntry::setSize(const XYPair& dim)
 ////////////////////////////////////////////////////////////////////////////////
 
 XYPair
-MenuEntry::getInnerSize()
+MenuNode::getInnerSize()
 const noexcept
 {
 	const auto inner_dim_v = space_.getSize();
@@ -108,19 +108,8 @@ const noexcept
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-void 
-MenuEntry::drawOn(sf::RenderWindow& window)
-const
-{
-	window.draw(cell_);
-	window.draw(caption_);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<MenuEntry>
-MenuEntry::makeCaption(const std::string& caption, bool vt_center)
+std::shared_ptr<MenuNode>
+MenuNode::makeCaption(const std::string& caption, bool vt_center)
 {
 	// Create graphical text.
 	caption_.setFont(*font_.family_);
@@ -141,20 +130,31 @@ MenuEntry::makeCaption(const std::string& caption, bool vt_center)
 	const auto space_width = XValue(space_.getSize().x);
 
 	switch (font_.align_) {
-		case FontProperties::Alignment::Left:
+		case Alignment::Left:
 			break;
 
-		case FontProperties::Alignment::Center:
+		case Alignment::Center:
 			x_to_move = (space_width - caption_width) / XValue(2.f);
 			break;
 
-		case FontProperties::Alignment::Right:
+		case Alignment::Right:
 			x_to_move = space_width - caption_width - x_to_move;
 			break;
 	}
 
 	caption_.move(sfVector2(x_to_move, y_to_move));
 	return shared_from_this();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void 
+MenuNode::drawTextBox(sf::RenderWindow& window)
+const
+{
+	window.draw(cell_);
+	window.draw(caption_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
